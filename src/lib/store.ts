@@ -6,10 +6,19 @@ interface AppState {
   selectedDate: string; // YYYY-MM-DD
   showAddModal: boolean;
   isInitialized: boolean;
+  showOnboarding: boolean;
   setTab: (tab: 'home' | 'progress' | 'add' | 'coach' | 'profile') => void;
   setSelectedDate: (date: string) => void;
   setShowAddModal: (show: boolean) => void;
   initializeDb: () => Promise<void>;
+  completeOnboarding: (data: {
+    name: string;
+    age: number;
+    currentWeight: number;
+    targetWeight: number;
+    cleanStreak: number;
+    sleepTarget: number;
+  }) => Promise<void>;
   calculateRecoveryScoreForDate: (date: string) => Promise<number>;
 }
 
@@ -28,6 +37,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedDate: getLocalDateString(),
   showAddModal: false,
   isInitialized: false,
+  showOnboarding: false,
 
   setTab: (tab) => set({ currentTab: tab }),
   setSelectedDate: (date) => set({ selectedDate: date }),
@@ -52,9 +62,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     // 3. Dopamine Recovery Streak (15%)
-    // Let's assume a baseline score based on days clean (from user profile or streak)
-    const CleanDays = 45; // baseline clean days
-    const dopamineScore = Math.min((CleanDays / 90) * 100, 100);
+    const profile = await db.userProfile.get(1);
+    const cleanDays = profile?.cleanStreak ?? 0;
+    const dopamineScore = Math.min((cleanDays / 90) * 100, 100);
 
     // 4. Hydration (10%)
     const water = await db.water.get(date);
@@ -93,115 +103,93 @@ export const useAppStore = create<AppState>((set, get) => ({
   initializeDb: async () => {
     const profile = await db.userProfile.get(1);
     if (profile) {
-      set({ isInitialized: true });
+      set({ isInitialized: true, showOnboarding: false });
       return;
     }
+    // No profile exists, show onboarding first
+    set({ isInitialized: true, showOnboarding: true });
+  },
 
-    // 1. Seed user profile
+  completeOnboarding: async (data) => {
+    // 1. Create user profile in DB
     await db.userProfile.put({
       id: 1,
-      name: "Abdullah",
+      name: data.name.trim() || 'Abdullah',
+      age: data.age || 23,
       dailyCalorieTarget: 2500,
       dailyWaterTarget: 3.0,
-      dailySleepTarget: 8.0,
+      dailySleepTarget: data.sleepTarget || 8.0,
+      cleanStreak: data.cleanStreak || 0
     });
 
-    // 2. Seed active goals
-    const initialGoals: Goal[] = [
-      { title: "Gain Weight", targetValue: 75, currentValue: 69, unit: "kg", category: "health", completed: false, createdAt: Date.now() },
-      { title: "Learn Flutter", targetValue: 100, currentValue: 65, unit: "%", category: "career", completed: false, createdAt: Date.now() },
-      { title: "Read 12 Books", targetValue: 12, currentValue: 7, unit: "Books", category: "habits", completed: false, createdAt: Date.now() },
-      { title: "Wake up for Fajr", targetValue: 30, currentValue: 25, unit: "days", category: "deen", completed: false, createdAt: Date.now() }
-    ];
+    // 2. Create goals based on user input
     await db.goals.clear();
-    for (const g of initialGoals) {
-      await db.goals.add(g);
+    await db.goals.add({
+      title: "Gain Weight",
+      targetValue: data.targetWeight || 75,
+      currentValue: data.currentWeight || 69,
+      unit: "kg",
+      category: "health",
+      completed: false,
+      createdAt: Date.now()
+    });
+    await db.goals.add({
+      title: "Clean Streak",
+      targetValue: 90,
+      currentValue: data.cleanStreak || 0,
+      unit: "days",
+      category: "health",
+      completed: false,
+      createdAt: Date.now()
+    });
+    await db.goals.add({
+      title: "Wake up for Fajr",
+      targetValue: 30,
+      currentValue: 0,
+      unit: "days",
+      category: "deen",
+      completed: false,
+      createdAt: Date.now()
+    });
+    await db.goals.add({
+      title: "Read 12 Books",
+      targetValue: 12,
+      currentValue: 0,
+      unit: "Books",
+      category: "habits",
+      completed: false,
+      createdAt: Date.now()
+    });
+
+    // 3. Create active routine list for today
+    const targetDate = getLocalDateString(0);
+    await db.routines.where({ date: targetDate }).delete();
+
+    const initialRoutines = [
+      { taskName: "Fajr", timeLabel: "5:05 AM", completed: false, order: 1 },
+      { taskName: "Qur'an", timeLabel: "15 min", completed: false, order: 2 },
+      { taskName: "Workout", timeLabel: "30 min", completed: false, order: 3 },
+      { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: false, order: 4 },
+      { taskName: "Dhuhr", timeLabel: "1:15 PM", completed: false, order: 5 },
+      { taskName: "Lunch", timeLabel: "1:45 PM", completed: false, order: 6 },
+      { taskName: "Asr", timeLabel: "5:00 PM", completed: false, order: 7 },
+      { taskName: "Walk", timeLabel: "6:00 PM", completed: false, order: 8 },
+      { taskName: "Maghrib", timeLabel: "7:24 PM", completed: false, order: 9 },
+      { taskName: "Isha", timeLabel: "8:41 PM", completed: false, order: 10 },
+      { taskName: "Read Book", timeLabel: "Pending", completed: false, order: 11 },
+      { taskName: "Sleep", timeLabel: "10:30 PM", completed: false, order: 12 }
+    ];
+
+    for (const r of initialRoutines) {
+      await db.routines.add({
+        date: targetDate,
+        taskName: r.taskName,
+        timeLabel: r.timeLabel,
+        completed: false,
+        order: r.order
+      });
     }
 
-    // 3. Seed historical logs for the last 7 days (including today)
-    const triggers = ["Social Media", "Loneliness", "Stress", "Boredom"];
-    await db.dopamineUrges.clear();
-    await db.dopamineUrges.bulkAdd([
-      { timestamp: Date.now() - 1000 * 60 * 60 * 30, strength: 'high', triggers: [triggers[0], triggers[1]], notes: 'Browsing feeds late at night.' },
-      { timestamp: Date.now() - 1000 * 60 * 60 * 24 * 7, strength: 'medium', triggers: [triggers[2]], notes: 'Tired after work.' },
-      { timestamp: Date.now() - 1000 * 60 * 60 * 24 * 12, strength: 'low', triggers: [triggers[3]], notes: 'Had some free time in afternoon.' }
-    ]);
-
-    for (let i = -7; i <= 0; i++) {
-      const targetDate = getLocalDateString(i);
-
-      // Seed sleep logs
-      const sleepDuration = i === 0 ? 7.5 : (7.0 + Math.random() * 1.5);
-      const sleepQuality = i === 0 ? 82 : Math.round(70 + Math.random() * 25);
-      await db.sleep.put({
-        date: targetDate,
-        totalHours: Number(sleepDuration.toFixed(1)),
-        deepHours: Number((sleepDuration * 0.28).toFixed(1)),
-        lightHours: Number((sleepDuration * 0.56).toFixed(1)),
-        remHours: Number((sleepDuration * 0.16).toFixed(1)),
-        awakeHours: Number((0.2 + Math.random() * 0.3).toFixed(1)),
-        qualityScore: sleepQuality
-      });
-
-      // Seed water logs
-      await db.water.put({
-        date: targetDate,
-        amountLiters: i === 0 ? 2.4 : Number((2.0 + Math.random() * 1.2).toFixed(1))
-      });
-
-      // Seed prayers
-      // Give a few missed prayers in the history to make charts realistic
-      const isToday = i === 0;
-      await db.prayers.put({
-        date: targetDate,
-        fajr: isToday ? true : Math.random() > 0.1,
-        dhuhr: isToday ? true : Math.random() > 0.15,
-        asr: isToday ? true : Math.random() > 0.08,
-        maghrib: isToday ? true : Math.random() > 0.12,
-        isha: isToday ? true : Math.random() > 0.2,
-        quranMinutes: isToday ? 15 : Math.round(10 + Math.random() * 20)
-      });
-
-      // Seed routine checkable timeline tasks
-      const initialRoutines = [
-        { taskName: "Fajr", timeLabel: "5:05 AM", completed: true, order: 1 },
-        { taskName: "Qur'an", timeLabel: "15 min", completed: true, order: 2 },
-        { taskName: "Workout", timeLabel: "30 min", completed: true, order: 3 },
-        { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: true, order: 4 },
-        { taskName: "Dhuhr", timeLabel: "1:15 PM", completed: true, order: 5 },
-        { taskName: "Lunch", timeLabel: "1:45 PM", completed: true, order: 6 },
-        { taskName: "Asr", timeLabel: "5:00 PM", completed: true, order: 7 },
-        { taskName: "Walk", timeLabel: "6:00 PM", completed: true, order: 8 },
-        { taskName: "Maghrib", timeLabel: "7:24 PM", completed: true, order: 9 },
-        { taskName: "Isha", timeLabel: "8:41 PM", completed: true, order: 10 },
-        { taskName: "Read Book", timeLabel: "Pending", completed: false, order: 11 },
-        { taskName: "Sleep", timeLabel: "10:30 PM", completed: false, order: 12 }
-      ];
-
-      for (const r of initialRoutines) {
-        // If it's a historical day, randomize completion
-        const comp = i === 0 ? r.completed : (r.order <= 10 ? Math.random() > 0.1 : Math.random() > 0.5);
-        await db.routines.add({
-          date: targetDate,
-          taskName: r.taskName,
-          timeLabel: r.timeLabel,
-          completed: comp,
-          order: r.order
-        });
-      }
-
-      // Seed meals
-      const mealLogs: MealLog[] = [
-        { date: targetDate, mealType: 'breakfast', description: "4 Eggs, 2 Roti, Banana, Milk", calories: 650, proteinGrams: 35 },
-        { date: targetDate, mealType: 'lunch', description: "Chicken, Rice, Daal, Salad", calories: 720, proteinGrams: 42 },
-        { date: targetDate, mealType: 'snack', description: "Banana Shake, Roasted Chana", calories: 350, proteinGrams: 15 },
-        { date: targetDate, mealType: 'dinner', description: "Roti, Daal, Vegetables, Yogurt", calories: 600, proteinGrams: 18 }
-      ];
-      for (const m of mealLogs) {
-        await db.meals.add(m);
-      }
-    }
-
-    set({ isInitialized: true });
+    set({ showOnboarding: false });
   }
 }));

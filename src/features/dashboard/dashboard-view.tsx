@@ -218,8 +218,8 @@ export default function DashboardView({
               <Shield className="w-5 h-5 fill-emerald-500/10" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Porn Free</span>
-              <span className="text-sm font-extrabold text-slate-200">45 days</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Clean Days</span>
+              <span className="text-sm font-extrabold text-slate-200">{profile?.cleanStreak ?? 0} days</span>
             </div>
           </button>
         </div>

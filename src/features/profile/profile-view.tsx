@@ -48,9 +48,11 @@ export default function ProfileView() {
     await db.userProfile.put({
       id: 1,
       name: name.trim() || 'Abdullah',
+      age: profile?.age ?? 23,
       dailyCalorieTarget: parseInt(calTarget) || 2500,
       dailyWaterTarget: parseFloat(waterTarget) || 3.0,
       dailySleepTarget: parseFloat(sleepTarget) || 8.0,
+      cleanStreak: profile?.cleanStreak ?? 0
     });
     setProfileView('main');
   };
@@ -195,7 +197,7 @@ export default function ProfileView() {
 
             <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
               <Shield className="w-5 h-5 text-[#02C39A] fill-emerald-500/10" />
-              <span className="text-xs font-bold text-slate-200 mt-2">45</span>
+              <span className="text-xs font-bold text-slate-200 mt-2">{profile?.cleanStreak ?? 0}</span>
               <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Clean Days</span>
             </div>
 

@@ -12,6 +12,7 @@ interface DopamineViewProps {
 
 export default function DopamineView({ onBack }: DopamineViewProps) {
   // Queries
+  const profile = useLiveQuery(() => db.userProfile.get(1));
   const urges = useLiveQuery(() => 
     db.dopamineUrges.orderBy('timestamp').reverse().toArray()
   );
@@ -32,7 +33,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
 
   const handleAddUrge = async (e: React.FormEvent) => {
     e.preventDefault();
-    await db.dopamineUrges.put({
+    await db.dopamineUrges.add({
       timestamp: Date.now(),
       strength,
       triggers: selectedTriggers,
@@ -113,8 +114,8 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
           <Shield className="w-10 h-10 fill-emerald-500/10 stroke-[1.5]" />
           <div className="absolute inset-0 rounded-full bg-emerald-500/5 blur-md"></div>
         </div>
-        <h2 className="text-3xl font-extrabold text-white font-heading tracking-tight">45 Days</h2>
-        <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">Porn Free</p>
+        <h2 className="text-3xl font-extrabold text-white font-heading tracking-tight">{profile?.cleanStreak ?? 0} Days</h2>
+        <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">Clean Days</p>
       </div>
 
       {/* Stats Row */}

@@ -3,10 +3,12 @@ import Dexie, { type Table } from 'dexie';
 export interface UserProfile {
   id: number;
   name: string;
+  age?: number;
   avatarUrl?: string;
   dailyCalorieTarget: number;
   dailyWaterTarget: number; // in Liters
   dailySleepTarget: number; // in hours
+  cleanStreak: number; // clean days streak counter
 }
 
 export interface PrayerLog {
