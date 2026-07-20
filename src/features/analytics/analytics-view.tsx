@@ -181,9 +181,86 @@ export default function AnalyticsView() {
         </div>
       )}
 
-      {activeTab !== 'overview' && (
-        <div className="text-center py-12 text-xs text-slate-600 font-semibold border border-dashed border-slate-900/60 rounded-2xl mt-4">
-          Detailed logs for <span className="capitalize">{activeTab}</span> analytics are loading...
+      {activeTab === 'habits' && (
+        <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
+          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Habit Consistency (7 Days)</h3>
+            
+            <div className="flex flex-col gap-4">
+              {[
+                { name: 'Water Target (3L)', value: '5/7 days', percent: 71, color: 'from-[#4CC9F0] to-[#3A86FF]' },
+                { name: 'Workout (30m)', value: '3/7 days', percent: 43, color: 'from-orange-500 to-amber-500' },
+                { name: 'Study (2.5 hrs)', value: '6/7 days', percent: 85, color: 'from-indigo-500 to-[#3A86FF]' },
+                { name: 'Walk Target (8k steps)', value: '4/7 days', percent: 57, color: 'from-amber-400 to-orange-500' }
+              ].map((hab, idx) => (
+                <div key={idx} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">{hab.name}</span>
+                    <span className="text-[10px] text-slate-500 font-bold">{hab.value} ({hab.percent}%)</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                    <div className={cn("h-full bg-gradient-to-r rounded-full", hab.color)} style={{ width: `${hab.percent}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'health' && (
+        <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
+          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Sleep & Diet Consistency</h3>
+            
+            <div className="flex flex-col gap-4">
+              {[
+                { name: 'Sleep Target (8h)', value: 'Avg 7.6 hrs', percent: 95, color: 'from-purple-500 to-indigo-500' },
+                { name: 'Sleep Quality', value: 'Avg 84%', percent: 84, color: 'from-[#02C39A] to-[#4CC9F0]' },
+                { name: 'Calorie Target (2500 kcal)', value: 'Avg 2,340 kcal', percent: 92, color: 'from-[#3A86FF] to-[#4CC9F0]' },
+                { name: 'Protein Target (120g)', value: 'Avg 112g', percent: 93, color: 'from-blue-500 to-indigo-500' }
+              ].map((hlth, idx) => (
+                <div key={idx} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">{hlth.name}</span>
+                    <span className="text-[10px] text-slate-500 font-bold">{hlth.value} ({hlth.percent}%)</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                    <div className={cn("h-full bg-gradient-to-r rounded-full", hlth.color)} style={{ width: `${hlth.percent}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'deen' && (
+        <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
+          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Prayer Completion Rates</h3>
+            
+            <div className="flex flex-col gap-4">
+              {[
+                { name: 'Fajr', value: '7/7 complete', percent: 100, color: 'from-emerald-400 to-[#02C39A]' },
+                { name: 'Dhuhr', value: '6/7 complete', percent: 85, color: 'from-[#3A86FF] to-[#02C39A]' },
+                { name: 'Asr', value: '5/7 complete', percent: 71, color: 'from-indigo-500 to-[#3A86FF]' },
+                { name: 'Maghrib', value: '7/7 complete', percent: 100, color: 'from-emerald-400 to-[#02C39A]' },
+                { name: 'Isha', value: '6/7 complete', percent: 85, color: 'from-[#3A86FF] to-[#02C39A]' },
+                { name: 'Qur\'an Recitation', value: 'Avg 15 min/day', percent: 100, color: 'from-[#4CC9F0] to-[#3A86FF]' }
+              ].map((pr, idx) => (
+                <div key={idx} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">{pr.name}</span>
+                    <span className="text-[10px] text-slate-500 font-bold">{pr.value}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                    <div className={cn("h-full bg-gradient-to-r rounded-full", pr.color)} style={{ width: `${pr.percent}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
