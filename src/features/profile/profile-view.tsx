@@ -313,6 +313,19 @@ export default function ProfileView() {
               <Save className="w-4 h-4" />
               Save Settings
             </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                if (confirm("Are you sure you want to delete all local data and reset the app? This cannot be undone.")) {
+                  await db.delete();
+                  window.location.reload();
+                }
+              }}
+              className="w-full py-3 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+            >
+              Reset App Data
+            </button>
           </div>
         </form>
       )}
