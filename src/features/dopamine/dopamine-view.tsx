@@ -22,6 +22,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
   const [strength, setStrength] = useState<'low' | 'medium' | 'high'>('low');
   const [selectedTriggers, setSelectedTriggers] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
+  const [resisted, setResisted] = useState<'yes' | 'no'>('yes');
 
   const triggersList = ['Social Media', 'Loneliness', 'Stress', 'Boredom', 'Late Night', 'Fatigue'];
 
@@ -33,17 +34,25 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
 
   const handleAddUrge = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isResisted = resisted === 'yes';
+    
     await db.dopamineUrges.add({
       timestamp: Date.now(),
       strength,
       triggers: selectedTriggers,
-      notes: notes.trim() || undefined
+      notes: notes.trim() || undefined,
+      resisted: isResisted
     });
+
+    if (!isResisted) {
+      await db.userProfile.update(1, { cleanStreak: 0 });
+    }
     
     // Reset form
     setStrength('low');
     setSelectedTriggers([]);
     setNotes('');
+    setResisted('yes');
     setShowAddForm(false);
   };
 
@@ -63,13 +72,27 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
   };
 
   // Derive counts and metrics
-  const totalUrgesToday = urges 
-    ? urges.filter(u => {
-        const d = new Date(u.timestamp);
-        const today = new Date();
-        return d.toDateString() === today.toDateString();
-      }).length 
-    : 2; // fallback to mock 2 if empty
+  const getStartAndEndOfToday = () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+    return [start.getTime(), end.getTime()];
+  };
+
+  const [startToday, endToday] = getStartAndEndOfToday();
+
+  const dailyUrges = urges 
+    ? urges.filter(u => u.timestamp >= startToday && u.timestamp <= endToday)
+    : [];
+
+  const urgesTodayCount = dailyUrges.length;
+  const resistedTodayCount = dailyUrges.filter(u => u.resisted === true).length;
+  const relapsesTodayCount = dailyUrges.filter(u => u.resisted === false).length;
+  const validDailyUrges = dailyUrges.filter(u => u.resisted !== undefined && u.resisted !== null);
+
+  const selfControlScoreText = validDailyUrges.length > 0 
+    ? `${Math.round((resistedTodayCount / (resistedTodayCount + relapsesTodayCount)) * 100)}%`
+    : 'Not Tracked';
 
   // Aggregate triggers count
   const triggersMap: Record<string, number> = {};
@@ -82,7 +105,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 2)
     .map(entry => entry[0])
-    .join(', ') || 'Social Media, Loneliness';
+    .join(', ') || 'None';
 
   return (
     <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
@@ -115,27 +138,43 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
           <div className="absolute inset-0 rounded-full bg-emerald-500/5 blur-md"></div>
         </div>
         <h2 className="text-3xl font-extrabold text-white font-heading tracking-tight">{profile?.cleanStreak ?? 0} Days</h2>
-        <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">Clean Days</p>
+        <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">Clean Days Streak</p>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Urges Today</span>
-          <span className="text-sm font-extrabold text-slate-200 mt-1">{totalUrgesToday}</span>
-          <span className="text-[9px] text-[#02C39A] font-bold mt-0.5">Low Intensity</span>
+          <div className="flex items-baseline justify-between mt-1 font-heading">
+            <span className="text-sm font-extrabold text-slate-200">{urgesTodayCount}</span>
+            <span className="text-[8px] text-slate-500 font-bold">Total Logged</span>
+          </div>
         </div>
 
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col">
-          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Longest Streak</span>
-          <span className="text-sm font-extrabold text-slate-200 mt-1">45 Days</span>
-          <span className="text-[9px] text-slate-500 font-bold mt-0.5">Record high</span>
+        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Self-Control Score</span>
+          <div className="flex items-baseline justify-between mt-1 font-heading">
+            <span className="text-sm font-extrabold text-[#3A86FF]">{selfControlScoreText}</span>
+            <span className="text-[8px] text-slate-500 font-bold">Resisted / Total</span>
+          </div>
         </div>
 
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col">
+        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Resisted / Relapsed</span>
+          <div className="flex items-baseline justify-between mt-1 font-heading">
+            <span className="text-sm font-extrabold text-[#02C39A]">
+              {resistedTodayCount} <span className="text-xs font-normal text-slate-500">/</span> <span className="text-rose-500">{relapsesTodayCount}</span>
+            </span>
+            <span className="text-[8px] text-slate-550 font-bold">Outcome counts</span>
+          </div>
+        </div>
+
+        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Top Triggers</span>
-          <span className="text-xs font-bold text-slate-300 mt-1 truncate">{topTriggers}</span>
-          <span className="text-[9px] text-slate-500 font-bold mt-0.5">Awareness</span>
+          <div className="flex items-baseline justify-between mt-1 font-heading">
+            <span className="text-xs font-bold text-slate-300 truncate max-w-[100px]">{topTriggers}</span>
+            <span className="text-[8px] text-slate-550 font-bold">Awareness</span>
+          </div>
         </div>
       </div>
 
@@ -190,6 +229,38 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
           </div>
 
           <div>
+            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Outcome</label>
+            <div className="flex gap-2">
+              <button
+                key="yes"
+                type="button"
+                onClick={() => setResisted('yes')}
+                className={cn(
+                  "flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer",
+                  resisted === 'yes'
+                    ? 'bg-[#02C39A]/15 border-[#02C39A] text-[#02C39A]'
+                    : 'bg-slate-950 border-slate-900 text-slate-450 hover:border-slate-800'
+                )}
+              >
+                Yes, Resisted Urge
+              </button>
+              <button
+                key="no"
+                type="button"
+                onClick={() => setResisted('no')}
+                className={cn(
+                  "flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer",
+                  resisted === 'no'
+                    ? 'bg-[#E63946]/15 border-[#E63946] text-[#E63946]'
+                    : 'bg-slate-950 border-slate-900 text-slate-450 hover:border-slate-800'
+                )}
+              >
+                No, Relapsed
+              </button>
+            </div>
+          </div>
+
+          <div>
             <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Notes</label>
             <input
               type="text"
@@ -231,12 +302,20 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
                     log.strength === 'high' && "bg-[#E63946]"
                   )} />
                   <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-bold text-slate-200 capitalize">
                         {log.strength} Urge
                       </span>
                       <span className="text-[8px] bg-slate-900 border border-slate-950 text-slate-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         {log.triggers.slice(0, 2).join(', ') || 'No Trigger'}
+                      </span>
+                      <span className={cn(
+                        "text-[8px] border px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                        log.resisted === true ? "bg-emerald-950/20 border-emerald-900/30 text-[#02C39A]" :
+                        log.resisted === false ? "bg-rose-950/20 border-rose-900/30 text-rose-400" :
+                        "bg-slate-950 border-slate-900 text-slate-500"
+                      )}>
+                        {log.resisted === true ? 'Resisted' : log.resisted === false ? 'Relapsed' : 'Unknown'}
                       </span>
                     </div>
                     <span className="text-[9px] text-slate-500 font-semibold">

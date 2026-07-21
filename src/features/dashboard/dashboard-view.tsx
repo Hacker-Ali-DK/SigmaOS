@@ -6,6 +6,8 @@ import { Bell, Flame, Shield, Check, X, BookOpen, Dumbbell, Footprints, Droplet,
 import { db, type RoutineTask } from '@/lib/db';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { type DailyScores } from '@/lib/scoring/types';
+import { calculateSelfControlForDate } from '@/lib/scoring/scoring-service';
 
 interface DashboardViewProps {
   onNavigateToSchedule: () => void;
@@ -24,9 +26,16 @@ export default function DashboardView({
   onNavigateToNutrition,
   onNavigateToGoals
 }: DashboardViewProps) {
-  const { selectedDate, calculateRecoveryScoreForDate } = useAppStore();
-  const [recoveryScore, setRecoveryScore] = useState<number>(87);
+  const { selectedDate, getDailyScoresForDate } = useAppStore();
+  const [scores, setScores] = useState<DailyScores | null>(null);
+  const [selfControlDetail, setSelfControlDetail] = useState<{
+    score: number | 'untracked';
+    urgesToday: number;
+    resistedToday: number;
+    relapsesToday: number;
+  }>({ score: 'untracked', urgesToday: 0, resistedToday: 0, relapsesToday: 0 });
   const [showRelapseBanner, setShowRelapseBanner] = useState(true);
+  const [expandedScore, setExpandedScore] = useState<'wellness' | 'discipline' | 'deen' | null>(null);
 
   // Live queries
   const profile = useLiveQuery(() => db.userProfile.get(1));
@@ -34,14 +43,16 @@ export default function DashboardView({
     db.routines.where({ date: selectedDate }).sortBy('order')
   );
 
-  // Recalculate recovery score whenever routines or date change
+  // Recalculate recovery scores whenever routines or date change
   useEffect(() => {
-    async function updateScore() {
-      const score = await calculateRecoveryScoreForDate(selectedDate);
-      setRecoveryScore(score);
+    async function updateScores() {
+      const res = await getDailyScoresForDate(selectedDate);
+      setScores(res);
+      const sc = await calculateSelfControlForDate(selectedDate);
+      setSelfControlDetail(sc);
     }
-    updateScore();
-  }, [routines, selectedDate, calculateRecoveryScoreForDate]);
+    updateScores();
+  }, [routines, selectedDate, getDailyScoresForDate]);
 
   // Toggle routine completion status
   const handleToggleRoutine = async (task: RoutineTask) => {
@@ -91,11 +102,11 @@ export default function DashboardView({
         await db.sleep.put({
           date: selectedDate,
           totalHours: 7.5,
-          deepHours: 2.1,
-          lightHours: 4.2,
-          remHours: 1.2,
-          awakeHours: 0.3,
-          qualityScore: 82
+          bedtime: `${selectedDate}T23:00`,
+          waketime: `${selectedDate}T06:30`,
+          qualityRating: 4.0,
+          qualityScore: 80,
+          source: 'manual'
         });
       } else {
         await db.sleep.where({ date: selectedDate }).delete();
@@ -136,10 +147,36 @@ export default function DashboardView({
   const completedCount = routines ? routines.filter(r => r.completed).length : 0;
   const totalCount = routines ? routines.length : 0;
 
+  const overallAlignment = scores?.overallAlignment ?? 60;
+
   // Custom stroke dash values
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (recoveryScore / 100) * circumference;
+  const strokeDashoffset = circumference - (overallAlignment / 100) * circumference;
+
+  const subScores = [
+    {
+      key: 'wellness' as const,
+      title: 'Wellness',
+      data: scores?.wellness,
+      colorClass: 'text-[#4CC9F0]',
+      progressColor: 'bg-[#4CC9F0]',
+    },
+    {
+      key: 'discipline' as const,
+      title: 'Discipline',
+      data: scores?.discipline,
+      colorClass: 'text-[#FFB703]',
+      progressColor: 'bg-[#FFB703]',
+    },
+    {
+      key: 'deen' as const,
+      title: 'Deen',
+      data: scores?.deen,
+      colorClass: 'text-[#02C39A]',
+      progressColor: 'bg-[#02C39A]',
+    }
+  ];
 
   return (
     <div className="flex flex-col gap-5 px-4 pt-6 pb-24">
@@ -157,7 +194,7 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Recovery Score Circular Card */}
+      {/* Overall Alignment Circular Card */}
       <div className="glass-panel rounded-3xl p-6 flex items-center justify-between bg-gradient-to-br from-[#0B0F19]/90 to-[#111625]/90 border border-slate-900/60 relative overflow-hidden">
         {/* Left Side: Circular Ring */}
         <div className="flex flex-col items-center flex-1">
@@ -186,12 +223,12 @@ export default function DashboardView({
             </svg>
             <div className="absolute flex flex-col items-center">
               <span className="text-3xl font-extrabold text-white tracking-tighter font-heading">
-                {recoveryScore}
+                {overallAlignment}
               </span>
               <span className="text-[10px] text-slate-500 font-bold">/100</span>
             </div>
           </div>
-          <span className="text-xs text-slate-400 mt-2 font-semibold">Recovery Score</span>
+          <span className="text-xs text-slate-400 mt-2 font-semibold">Overall Alignment</span>
           <span className="text-[10px] text-[#02C39A] font-bold mt-0.5">Keep going, champion!</span>
         </div>
 
@@ -205,8 +242,8 @@ export default function DashboardView({
               <Flame className="w-5 h-5 fill-orange-500/10" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Streak</span>
-              <span className="text-sm font-extrabold text-slate-200">23 days</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Recovery Streak</span>
+              <span className="text-sm font-extrabold text-slate-200">{profile?.cleanStreak ?? 0} days</span>
             </div>
           </button>
 
@@ -218,11 +255,114 @@ export default function DashboardView({
               <Shield className="w-5 h-5 fill-emerald-500/10" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Clean Days</span>
-              <span className="text-sm font-extrabold text-slate-200">{profile?.cleanStreak ?? 0} days</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Today's Self-Control</span>
+              <span className="text-sm font-extrabold text-slate-200">
+                {selfControlDetail.score === 'untracked' ? 'Not Tracked' : `${selfControlDetail.score}%`}
+              </span>
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Wellness, Discipline, Deen Sub-scores */}
+      <div className="flex flex-col gap-3">
+        {subScores.map((sub) => {
+          const isExpanded = expandedScore === sub.key;
+          const scoreVal = sub.data?.score ?? 60;
+          const status = sub.data?.status ?? 'untracked';
+          
+          return (
+            <div 
+              key={sub.key}
+              onClick={() => setExpandedScore(isExpanded ? null : sub.key)}
+              className={cn(
+                "glass-panel rounded-2xl p-4 border transition-all duration-300 cursor-pointer",
+                isExpanded ? "border-slate-800 bg-slate-900/10" : "hover:border-slate-800/80 bg-[#0B0F19]/60 border-slate-900/60"
+              )}
+            >
+              {/* Card Header Row */}
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{sub.title}</h3>
+                    <span className={cn(
+                      "text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide",
+                      status === 'completed' && "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+                      status === 'partial' && "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+                      (status === 'untracked' || status === 'insufficient') && "bg-slate-800 text-slate-500 border border-slate-700"
+                    )}>
+                      {status === 'insufficient' ? 'insufficient data' : status}
+                    </span>
+                  </div>
+                  {sub.data && sub.data.trackedCount !== undefined && status !== 'untracked' && status !== 'insufficient' && (
+                    <span className="text-[9px] text-slate-500 font-bold mt-1">
+                      Based on {sub.data.trackedCount} of {sub.data.totalCount} tracked areas
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className={cn("text-sm font-extrabold font-heading", sub.colorClass)}>{scoreVal}</span>
+                  <span className="text-[10px] text-slate-500 font-bold">/100</span>
+                  <ChevronRight className={cn("w-3.5 h-3.5 text-slate-650 transition-transform duration-300", isExpanded && "transform rotate-90")} />
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden mt-3">
+                <div 
+                  className={cn("h-full rounded-full transition-all duration-500", sub.progressColor)}
+                  style={{ width: `${status === 'insufficient' || status === 'untracked' ? 0 : scoreVal}%` }}
+                />
+              </div>
+
+              {/* Short explanation preview when collapsed */}
+              {!isExpanded && sub.data?.recommendation && (
+                <p className="text-[10px] text-slate-500 font-medium mt-2.5 truncate">
+                  {sub.data.recommendation}
+                </p>
+              )}
+
+              {/* Expanded details */}
+              {isExpanded && (
+                <div className="flex flex-col gap-3 mt-4 pt-3 border-t border-slate-900/60 animate-in fade-in duration-200">
+                  {/* Positives */}
+                  {sub.data?.positives && sub.data.positives.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Positives</span>
+                      {sub.data.positives.map((pos, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium">
+                          <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                          <span>{pos}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Negatives */}
+                  {sub.data?.negatives && sub.data.negatives.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-heading">Needs Attention</span>
+                      {sub.data.negatives.map((neg, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-350 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          <span>{neg}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Recommendation Callout */}
+                  {sub.data?.recommendation && (
+                    <div className="mt-1 p-2.5 rounded-xl bg-slate-950 border border-slate-900 text-[11px] leading-relaxed text-slate-400">
+                      <span className="font-bold text-slate-300 block mb-0.5 font-heading">Recommendation:</span>
+                      {sub.data.recommendation}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Today's Progress Section */}

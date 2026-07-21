@@ -15,7 +15,7 @@ interface Message {
 }
 
 export default function CoachView() {
-  const { selectedDate } = useAppStore();
+  const { selectedDate, getDailyScoresForDate } = useAppStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -53,7 +53,10 @@ export default function CoachView() {
     setInputText('');
     setIsTyping(true);
 
-    // 2. Generate smart response offline based on database state
+    // 2. Fetch today's scores
+    const scores = await getDailyScoresForDate(selectedDate);
+
+    // 3. Generate smart response offline based on database state
     setTimeout(async () => {
       let responseText = "I have analyzed your metrics, but I need more historical data to provide full insights. Try logging more routines!";
 
@@ -67,18 +70,16 @@ export default function CoachView() {
         
         if (todaySleep && todaySleep.totalHours < avgHrs) {
           const diff = (avgHrs - todaySleep.totalHours).toFixed(1);
-          responseText = `Today's sleep duration of ${todaySleep.totalHours} hrs is ${diff} hrs less than your weekly average (${avgHrs.toFixed(1)} hrs). This sleep deficit directly impacts your brain's recovery score and energy levels. I recommend avoiding screens after Isha and sleeping 30 mins earlier tonight.`;
+          responseText = `Today's sleep duration of ${todaySleep.totalHours} hrs is ${diff} hrs less than your weekly average (${avgHrs.toFixed(1)} hrs). This sleep deficit directly impacts your Wellness score (currently ${scores.wellness.score}%) and energy levels. I recommend avoiding screens after Isha and sleeping 30 mins earlier tonight.`;
         } else {
-          responseText = "Your sleep logs look solid (around 7.5 to 8.0 hrs). If you are still feeling low energy, check your hydration levels. Dehydration is a common hidden cause of daytime fatigue.";
+          responseText = `Your sleep logs look solid (around 7.5 to 8.0 hrs), keeping your Wellness score healthy at ${scores.wellness.score}%. If you are still feeling low energy, check your hydration levels. Dehydration is a common hidden cause of daytime fatigue.`;
         }
       } else if (cleanQuery.includes('fajr') || cleanQuery.includes('missed')) {
-        responseText = "Missing Fajr disrupts your morning routine cycle. To adjust, plan a lighter workout session today to offset any sleep deficits, ensure you read Quran for at least 10 minutes to restore mental focus, and set double alarms for tomorrow located away from your bed.";
+        responseText = `Missing Fajr impacts your Deen score (currently ${scores.deen.score}%). To adjust, plan a lighter workout session today to offset any sleep deficits, ensure you read Quran for at least 10 minutes to restore mental focus, and set double alarms for tomorrow located away from your bed.`;
       } else if (cleanQuery.includes('consistent') || cleanQuery.includes('habit')) {
-        const routines = await db.routines.where({ date: selectedDate }).toArray();
-        const completed = routines.filter(r => r.completed).length;
-        responseText = `You completed ${completed}/${routines.length || 12} routines today. To build consistency, focus on chaining the 'anchor habits' first: Sleep on time -> Wake for Fajr -> Hydrate. When you lock down these three pillars, your downstream energy and focus naturally follow.`;
+        responseText = `Your current scores are: Overall Alignment (${scores.overallAlignment}%), Wellness (${scores.wellness.score}%), Discipline (${scores.discipline.score}%), and Deen (${scores.deen.score}%). To build consistency, focus on chaining the 'anchor habits' first: Sleep on time -> Wake for Fajr -> Hydrate. When you lock down these three pillars, your downstream energy and focus naturally follow.`;
       } else if (cleanQuery.includes('workout') || cleanQuery.includes('late')) {
-        responseText = "If you slept late and missed your target sleep window, skip high-intensity workouts today. Instead, do a light 30-minute recovery walk and prioritize hydration (drink 3.0 liters of water) to let your nervous system rest.";
+        responseText = `If you slept late and missed your target sleep window, skip high-intensity workouts today. Instead, do a light 30-minute recovery walk and prioritize hydration (drink 3.0 liters of water) to let your nervous system rest while preserving your Discipline score (currently ${scores.discipline.score}%).`;
       }
 
       setMessages(prev => [...prev, {

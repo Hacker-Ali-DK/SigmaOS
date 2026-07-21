@@ -5,6 +5,7 @@ import { X, Droplet, Moon, Shield, Sparkles, Utensils, Dumbbell, BookOpen } from
 import { useAppStore, getLocalDateString } from '@/lib/store';
 import { db } from '@/lib/db';
 import { cn } from '@/lib/utils';
+import { calculateSleepDuration } from '@/lib/scoring/scoring-service';
 
 export default function QuickAddModal() {
   const { showAddModal, setShowAddModal, selectedDate } = useAppStore();
@@ -15,8 +16,10 @@ export default function QuickAddModal() {
   const [urgeStrength, setUrgeStrength] = useState<'low' | 'medium' | 'high'>('low');
   const [urgeNotes, setUrgeNotes] = useState('');
   const [urgeTriggers, setUrgeTriggers] = useState<string[]>([]);
-  const [sleepHours, setSleepHours] = useState('8.0');
-  const [sleepQuality, setSleepQuality] = useState('80');
+  const [sleepBedtime, setSleepBedtime] = useState('22:30');
+  const [sleepWakeup, setSleepWakeup] = useState('06:30');
+  const [sleepQualityRating, setSleepQualityRating] = useState('4');
+  const [sleepAwakenings, setSleepAwakenings] = useState('');
   const [mealName, setMealName] = useState('');
   const [mealCalories, setMealCalories] = useState('500');
   const [mealProtein, setMealProtein] = useState('25');
@@ -31,6 +34,10 @@ export default function QuickAddModal() {
       setMealName('');
       setUrgeNotes('');
       setUrgeTriggers([]);
+      setSleepBedtime('22:30');
+      setSleepWakeup('06:30');
+      setSleepQualityRating('4');
+      setSleepAwakenings('');
     }
   }, [showAddModal]);
 
@@ -59,17 +66,38 @@ export default function QuickAddModal() {
   };
 
   const logSleep = async () => {
-    const hrs = parseFloat(sleepHours) || 8.0;
-    const qual = parseInt(sleepQuality) || 80;
+    if (!sleepBedtime || !sleepWakeup) return;
+    const dur = calculateSleepDuration(sleepBedtime, sleepWakeup);
+    const qualRating = parseFloat(sleepQualityRating) || 4.0;
+    const awakeningsVal = sleepAwakenings.trim() ? parseInt(sleepAwakenings) : undefined;
+    
+    let bedtimeDateStr = selectedDate;
+    if (sleepWakeup < sleepBedtime) {
+      const prevDate = new Date(selectedDate);
+      prevDate.setDate(prevDate.getDate() - 1);
+      const year = prevDate.getFullYear();
+      const month = String(prevDate.getMonth() + 1).padStart(2, '0');
+      const day = String(prevDate.getDate()).padStart(2, '0');
+      bedtimeDateStr = `${year}-${month}-${day}`;
+    }
+
     await db.sleep.put({
       date: selectedDate,
-      totalHours: hrs,
-      deepHours: Number((hrs * 0.28).toFixed(1)),
-      lightHours: Number((hrs * 0.56).toFixed(1)),
-      remHours: Number((hrs * 0.16).toFixed(1)),
-      awakeHours: 0.3,
-      qualityScore: qual
+      totalHours: dur,
+      bedtime: `${bedtimeDateStr}T${sleepBedtime}`,
+      waketime: `${selectedDate}T${sleepWakeup}`,
+      qualityRating: qualRating,
+      qualityScore: qualRating * 20,
+      awakenings: awakeningsVal,
+      source: 'manual'
     });
+
+    const routines = await db.routines.where({ date: selectedDate }).toArray();
+    const sleepRoutine = routines.find(r => r.taskName === 'Sleep');
+    if (sleepRoutine?.id) {
+      await db.routines.update(sleepRoutine.id, { completed: true });
+    }
+
     setShowAddModal(false);
   };
 
@@ -301,33 +329,80 @@ export default function QuickAddModal() {
           {/* Sleep Panel */}
           {activeSection === 'sleep' && (
             <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Sleep Duration (Hours)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="1"
-                  max="24"
-                  value={sleepHours}
-                  onChange={(e) => setSleepHours(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-lg text-slate-100 font-bold"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Bedtime</label>
+                  <input
+                    type="time"
+                    value={sleepBedtime}
+                    onChange={(e) => setSleepBedtime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Wake-up Time</label>
+                  <input
+                    type="time"
+                    value={sleepWakeup}
+                    onChange={(e) => setSleepWakeup(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-bold"
+                  />
+                </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-xs text-slate-400 uppercase tracking-wider mb-2 font-medium">
-                  <span>Sleep Quality</span>
-                  <span className="text-[#4CC9F0]">{sleepQuality}%</span>
+                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Sleep Quality</label>
+                <div className="flex gap-1 bg-slate-900 p-1 rounded-xl">
+                  {['1', '2', '3', '4', '5'].map((rating) => {
+                    const isSelected = sleepQualityRating === rating;
+                    const labels = ['Very Poor', 'Poor', 'Average', 'Good', 'Excellent'];
+                    return (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setSleepQualityRating(rating)}
+                        title={labels[parseInt(rating) - 1]}
+                        className={cn(
+                          "flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                          isSelected ? "bg-[#3A86FF] text-white shadow-sm" : "text-slate-500 hover:text-slate-300"
+                        )}
+                      >
+                        {rating}
+                      </button>
+                    );
+                  })}
                 </div>
+                <div className="flex justify-between px-1 mt-1.5 text-[10px] text-slate-500 font-bold uppercase">
+                  <span>Very Poor</span>
+                  <span>Excellent</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Awakenings (Optional)</label>
                 <input
-                  type="range"
-                  min="20"
-                  max="100"
-                  value={sleepQuality}
-                  onChange={(e) => setSleepQuality(e.target.value)}
-                  className="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-[#4CC9F0]"
+                  type="number"
+                  min="0"
+                  placeholder="Not Tracked"
+                  value={sleepAwakenings}
+                  onChange={(e) => setSleepAwakenings(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-semibold"
                 />
               </div>
+
+              {/* Calculated duration feedback */}
+              <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Calculated Sleep Duration:</span>
+                <span className="text-indigo-400 font-extrabold text-sm">
+                  {calculateSleepDuration(sleepBedtime, sleepWakeup)} hours
+                </span>
+              </div>
+
+              {calculateSleepDuration(sleepBedtime, sleepWakeup) > 16 && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400 leading-relaxed font-semibold">
+                  ⚠️ Note: This is an unusually long sleep duration (&gt;16 hours). Please verify your times.
+                </div>
+              )}
 
               <button 
                 onClick={logSleep}

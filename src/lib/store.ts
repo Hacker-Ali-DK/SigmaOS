@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { db, type UserProfile, type Goal, type RoutineTask, type SleepLog, type WaterLog, type MealLog, type PrayerLog } from './db';
+import { type DailyScores } from './scoring/types';
+import { calculateScoresForDate } from './scoring/scoring-service';
 
 interface AppState {
   currentTab: 'home' | 'progress' | 'add' | 'coach' | 'profile';
@@ -19,7 +21,7 @@ interface AppState {
     cleanStreak: number;
     sleepTarget: number;
   }) => Promise<void>;
-  calculateRecoveryScoreForDate: (date: string) => Promise<number>;
+  getDailyScoresForDate: (date: string) => Promise<DailyScores>;
 }
 
 // Helper to get date string in YYYY-MM-DD local format
@@ -43,61 +45,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedDate: (date) => set({ selectedDate: date }),
   setShowAddModal: (show) => set({ showAddModal: show }),
 
-  calculateRecoveryScoreForDate: async (date) => {
-    // 1. Sleep Quality (30%)
-    const sleep = await db.sleep.get(date);
-    const sleepScore = sleep ? Math.min((sleep.totalHours / 8) * 100, 100) * 0.7 + (sleep.qualityScore * 0.3) : 60; // default to 60 if no log
-
-    // 2. Prayer/Deen Completion (20%)
-    const prayers = await db.prayers.get(date);
-    let prayerScore = 50; // baseline
-    if (prayers) {
-      let completedCount = 0;
-      if (prayers.fajr) completedCount++;
-      if (prayers.dhuhr) completedCount++;
-      if (prayers.asr) completedCount++;
-      if (prayers.maghrib) completedCount++;
-      if (prayers.isha) completedCount++;
-      prayerScore = (completedCount / 5) * 100;
-    }
-
-    // 3. Dopamine Recovery Streak (15%)
-    const profile = await db.userProfile.get(1);
-    const cleanDays = profile?.cleanStreak ?? 0;
-    const dopamineScore = Math.min((cleanDays / 90) * 100, 100);
-
-    // 4. Hydration (10%)
-    const water = await db.water.get(date);
-    const waterScore = water ? Math.min((water.amountLiters / 3.0) * 100, 100) : 0;
-
-    // 5. Routine Completion (15%)
-    const routines = await db.routines.where({ date }).toArray();
-    let routineScore = 50;
-    if (routines.length > 0) {
-      const completed = routines.filter(r => r.completed).length;
-      routineScore = (completed / routines.length) * 100;
-    }
-
-    // 6. Nutrition (10%)
-    const meals = await db.meals.where({ date }).toArray();
-    const calories = meals.reduce((sum, m) => sum + m.calories, 0);
-    const protein = meals.reduce((sum, m) => sum + m.proteinGrams, 0);
-    
-    const calorieScore = Math.max(0, 100 - Math.abs((calories - 2500) / 2500) * 100);
-    const proteinScore = Math.min((protein / 120) * 100, 100);
-    const nutritionScore = (calorieScore + proteinScore) / 2;
-
-    // Calculate final weighted score
-    const finalScore = Math.round(
-      (sleepScore * 0.3) +
-      (prayerScore * 0.2) +
-      (dopamineScore * 0.15) +
-      (waterScore * 0.1) +
-      (routineScore * 0.15) +
-      (nutritionScore * 0.1)
-    );
-
-    return Math.max(10, Math.min(finalScore, 100));
+  getDailyScoresForDate: async (date) => {
+    return calculateScoresForDate(date);
   },
 
   initializeDb: async () => {
