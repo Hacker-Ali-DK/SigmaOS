@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Calendar, ChevronRight, Check, Circle, ChevronLeft, ChevronRight as ChevronRightIcon, ArrowLeft } from 'lucide-react';
-import { db, type RoutineTask } from '@/lib/db';
+import { db, type RoutineTask, type DetailedPrayerStatus, type PrayerDetail } from '@/lib/db';
 import { useAppStore, getLocalDateString } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,8 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
 
   // Query routines for selectedDate
   const routines = useLiveQuery(() => 
-    db.routines.where({ date: selectedDate }).sortBy('order')
+    db.routines.where({ date: selectedDate }).sortBy('order'),
+    [selectedDate]
   );
 
   // Pagination helpers
@@ -42,8 +43,34 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
     if (task.taskName === 'Fajr' || task.taskName === 'Dhuhr' || task.taskName === 'Asr' || task.taskName === 'Maghrib' || task.taskName === 'Isha') {
       const field = task.taskName.toLowerCase() as 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
       const log = await db.prayers.get(selectedDate);
+      const now = new Date();
+      const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const newStatus: DetailedPrayerStatus = nextCompleted ? 'prayed_on_time' : 'not_tracked';
+
       if (log) {
-        await db.prayers.update(selectedDate, { [field]: nextCompleted });
+        const existingDetail = (log[field] && typeof log[field] === 'object') ? (log[field] as any) : {};
+        const updatedDetail: PrayerDetail = {
+          ...existingDetail,
+          status: newStatus,
+          completedTime: nextCompleted ? currentTimeStr : undefined
+        };
+        const updateObj: any = { [field]: updatedDetail };
+        await db.prayers.update(selectedDate, updateObj);
+      } else {
+        const updatedDetail: PrayerDetail = {
+          status: newStatus,
+          completedTime: nextCompleted ? currentTimeStr : undefined
+        };
+        const notTrackedDetail: PrayerDetail = { status: 'not_tracked' };
+        await db.prayers.put({
+          date: selectedDate,
+          fajr: field === 'fajr' ? updatedDetail : notTrackedDetail,
+          dhuhr: field === 'dhuhr' ? updatedDetail : notTrackedDetail,
+          asr: field === 'asr' ? updatedDetail : notTrackedDetail,
+          maghrib: field === 'maghrib' ? updatedDetail : notTrackedDetail,
+          isha: field === 'isha' ? updatedDetail : notTrackedDetail,
+          quranMinutes: 0
+        });
       }
     } else if (task.taskName === 'Water') {
       await db.water.put({

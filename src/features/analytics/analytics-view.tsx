@@ -12,6 +12,7 @@ import {
   calculateSleepConsistencyStats,
   calculateDailySleepScore
 } from '@/lib/scoring/scoring-service';
+import { calculateDeenAnalyticsForRange, type DeenAnalyticsResult } from '@/lib/deen/deen-analytics';
 import { getLocalDateString } from '@/lib/store';
 
 export default function AnalyticsView() {
@@ -19,12 +20,14 @@ export default function AnalyticsView() {
   const [activeTab, setActiveTab] = useState<'overview' | 'habits' | 'health' | 'deen'>('overview');
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y'>('7d');
   const [chartData, setChartData] = useState<HistoricalScoreEntry[]>([]);
+  const [deenAnalytics, setDeenAnalytics] = useState<DeenAnalyticsResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Live queries
   const daysLimit = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
   const sleepLogs = useLiveQuery(() => db.sleep.orderBy('date').reverse().limit(daysLimit).toArray(), [dateRange]);
   const napLogs = useLiveQuery(() => db.naps.orderBy('date').reverse().limit(daysLimit).toArray(), [dateRange]);
+  const prayerLogs = useLiveQuery(() => db.prayers.orderBy('date').reverse().limit(daysLimit).toArray(), [dateRange]);
   const profile = useLiveQuery(() => db.userProfile.get(1));
 
   useEffect(() => {
@@ -36,10 +39,12 @@ export default function AnalyticsView() {
       setLoading(true);
       const data = await calculateHistoricalScoresForRange(getLocalDateString(), daysLimit);
       setChartData(data);
+      const deenData = await calculateDeenAnalyticsForRange(getLocalDateString(), daysLimit);
+      setDeenAnalytics(deenData);
       setLoading(false);
     }
     loadTrends();
-  }, [dateRange, daysLimit]);
+  }, [dateRange, daysLimit, prayerLogs]);
 
   const avgWellness = chartData.length > 0 
     ? Math.round(chartData.reduce((sum, d) => sum + d.Wellness, 0) / chartData.length) 
@@ -385,30 +390,126 @@ export default function AnalyticsView() {
         );
       })()}
 
-      {activeTab === 'deen' && (
+      {activeTab === 'deen' && deenAnalytics && (
         <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
+          {/* Rate Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="glass-panel rounded-2xl p-4 bg-emerald-950/20 border-emerald-900/30 flex flex-col justify-between">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tracking Coverage</span>
+              <span className="text-xl font-extrabold text-emerald-400 mt-2 font-heading">
+                {deenAnalytics.coveragePercent}%
+              </span>
+              <span className="text-[9px] text-slate-500 font-medium mt-1">
+                {deenAnalytics.trackedPrayers}/{deenAnalytics.applicablePrayers} prayers
+              </span>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-4 bg-cyan-950/20 border-cyan-900/30 flex flex-col justify-between">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">On-Time Rate</span>
+              <span className="text-xl font-extrabold text-cyan-400 mt-2 font-heading">
+                {deenAnalytics.onTimeRate}%
+              </span>
+              <span className="text-[9px] text-slate-500 font-medium mt-1">
+                {deenAnalytics.onTimeCount} prayed on time
+              </span>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-4 bg-amber-950/20 border-amber-900/30 flex flex-col justify-between">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Late Rate</span>
+              <span className="text-xl font-extrabold text-amber-400 mt-2 font-heading">
+                {deenAnalytics.lateRate}%
+              </span>
+              <span className="text-[9px] text-slate-500 font-medium mt-1">
+                {deenAnalytics.lateCount} prayed late
+              </span>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-4 bg-rose-950/20 border-rose-900/30 flex flex-col justify-between">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Missed Rate</span>
+              <span className="text-xl font-extrabold text-rose-400 mt-2 font-heading">
+                {deenAnalytics.missedRate}%
+              </span>
+              <span className="text-[9px] text-slate-500 font-medium mt-1">
+                {deenAnalytics.missedCount} logged missed
+              </span>
+            </div>
+          </div>
+
+          {/* Deen Consistency Score History Chart */}
           <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Prayer Completion Rates</h3>
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Deen Consistency Score History</h3>
+            <div className="w-full h-44 text-xs">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={deenAnalytics.scoreHistory} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
+                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} />
+                  <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                  />
+                  <Line type="monotone" dataKey="score" name="Deen Score" stroke="#02C39A" strokeWidth={3} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Per-Prayer Breakdown */}
+          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Live Per-Prayer Breakdown</h3>
             
             <div className="flex flex-col gap-4">
-              {[
-                { name: 'Fajr', value: '7/7 complete', percent: 100, color: 'from-emerald-400 to-[#02C39A]' },
-                { name: 'Dhuhr', value: '6/7 complete', percent: 85, color: 'from-[#3A86FF] to-[#02C39A]' },
-                { name: 'Asr', value: '5/7 complete', percent: 71, color: 'from-indigo-500 to-[#3A86FF]' },
-                { name: 'Maghrib', value: '7/7 complete', percent: 100, color: 'from-emerald-400 to-[#02C39A]' },
-                { name: 'Isha', value: '6/7 complete', percent: 85, color: 'from-[#3A86FF] to-[#02C39A]' },
-                { name: 'Qur\'an Recitation', value: 'Avg 15 min/day', percent: 100, color: 'from-[#4CC9F0] to-[#3A86FF]' }
-              ].map((pr, idx) => (
-                <div key={idx} className="flex flex-col gap-2">
+              {deenAnalytics.perPrayerStats.map((pr) => (
+                <div key={pr.key} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-300">{pr.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">{pr.value}</span>
+                    <span className="text-[10px] text-slate-400 font-bold">
+                      {pr.onTimeCount}/{pr.trackedCount > 0 ? pr.trackedCount : pr.applicableCount} on time ({pr.onTimePercent}%)
+                    </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
-                    <div className={cn("h-full bg-gradient-to-r rounded-full", pr.color)} style={{ width: `${pr.percent}%` }} />
+                  <div className="w-full h-2 bg-slate-950/60 rounded-full overflow-hidden flex">
+                    <div 
+                      className="h-full bg-emerald-400 transition-all" 
+                      style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.onTimeCount / pr.applicableCount) * 100) : 0}%` }} 
+                      title={`${pr.onTimeCount} on time`}
+                    />
+                    <div 
+                      className="h-full bg-amber-400 transition-all" 
+                      style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.lateCount / pr.applicableCount) * 100) : 0}%` }} 
+                      title={`${pr.lateCount} late`}
+                    />
+                    <div 
+                      className="h-full bg-rose-400 transition-all" 
+                      style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.missedCount / pr.applicableCount) * 100) : 0}%` }} 
+                      title={`${pr.missedCount} missed`}
+                    />
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Qur'an Recitation Trends Chart */}
+          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Qur'an Recitation Trends</h3>
+              <div className="flex items-center gap-3 text-[10px] text-slate-400 font-bold">
+                <span>Avg: <strong className="text-cyan-400">{deenAnalytics.avgQuranMinutes}</strong> min/day</span>
+                <span>Active: <strong className="text-emerald-400">{deenAnalytics.quranActiveDays}</strong>/{deenAnalytics.daysLimit} days</span>
+              </div>
+            </div>
+
+            <div className="w-full h-40 text-xs">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={deenAnalytics.quranTrend} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
+                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} />
+                  <YAxis stroke="#64748B" tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                  />
+                  <Bar dataKey="minutes" name="Recitation (mins)" fill="#4CC9F0" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

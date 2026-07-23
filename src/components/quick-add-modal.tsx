@@ -1,15 +1,57 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Droplet, Moon, Shield, Sparkles, Utensils, Dumbbell, BookOpen } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { X, Droplet, Moon, Shield, Sparkles, Utensils, Dumbbell, BookOpen, CheckCircle2, Clock, XCircle, MinusCircle } from 'lucide-react';
 import { useAppStore, getLocalDateString } from '@/lib/store';
-import { db } from '@/lib/db';
+import { db, type DetailedPrayerStatus, type PrayerDetail, getPrayerStatus, isPrayerCompleted } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { calculateSleepDuration } from '@/lib/scoring/scoring-service';
 
 export default function QuickAddModal() {
   const { showAddModal, setShowAddModal, selectedDate } = useAppStore();
-  const [activeSection, setActiveSection] = useState<'grid' | 'water' | 'urge' | 'sleep' | 'meal'>('grid');
+  const [activeSection, setActiveSection] = useState<'grid' | 'water' | 'urge' | 'sleep' | 'meal' | 'deen'>('grid');
+
+  const currentPrayerLog = useLiveQuery(() => db.prayers.get(selectedDate), [selectedDate]);
+
+  const handleSavePrayerStatus = async (field: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha', newStatus: DetailedPrayerStatus) => {
+    const existingLog = await db.prayers.get(selectedDate);
+    const now = new Date();
+    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const existingDetail = (existingLog && existingLog[field] && typeof existingLog[field] === 'object')
+      ? (existingLog[field] as any)
+      : {};
+
+    const updatedDetail: PrayerDetail = {
+      ...existingDetail,
+      status: newStatus,
+      completedTime: (newStatus === 'prayed_on_time' || newStatus === 'prayed_late') ? currentTimeStr : undefined
+    };
+
+    const updatedLog = {
+      ...(existingLog || {
+        date: selectedDate,
+        fajr: { status: 'not_tracked' },
+        dhuhr: { status: 'not_tracked' },
+        asr: { status: 'not_tracked' },
+        maghrib: { status: 'not_tracked' },
+        isha: { status: 'not_tracked' },
+        quranMinutes: 0
+      }),
+      [field]: updatedDetail
+    };
+
+    await db.prayers.put(updatedLog);
+
+    const routines = await db.routines.where({ date: selectedDate }).toArray();
+    const targetRoutine = routines.find(r => r.taskName.toLowerCase() === field);
+    if (targetRoutine?.id) {
+      await db.routines.update(targetRoutine.id, {
+        completed: isPrayerCompleted(newStatus)
+      });
+    }
+  };
   
   // Inputs
   const [waterAmount, setWaterAmount] = useState('0.25');
@@ -199,7 +241,7 @@ export default function QuickAddModal() {
               </button>
 
               <button 
-                onClick={quickDeenLog}
+                onClick={() => setActiveSection('deen')}
                 className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 hover:border-emerald-500/30 transition-colors group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform mb-2">
@@ -471,6 +513,63 @@ export default function QuickAddModal() {
               >
                 Add Meal
               </button>
+            </div>
+          )}
+
+          {/* Deen / Prayer Panel */}
+          {activeSection === 'deen' && (
+            <div className="flex flex-col gap-3">
+              <span className="text-xs text-slate-400 font-semibold mb-1 block">
+                Select detailed status for today's prayers:
+              </span>
+              {(['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((field) => {
+                const rawVal = currentPrayerLog?.[field];
+                const currentStatus = getPrayerStatus(rawVal);
+                const detail = (rawVal && typeof rawVal === 'object') ? (rawVal as PrayerDetail) : null;
+                const completedTime = detail?.completedTime;
+
+                return (
+                  <div key={field} className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-2xl flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-200 capitalize font-heading flex items-center gap-1.5">
+                        {field}
+                        {completedTime && (
+                          <span className="text-[10px] text-slate-400 font-normal font-mono">({completedTime})</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize bg-slate-950 text-slate-400 border border-slate-800">
+                        {currentStatus.replace('_', ' ')}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[
+                        { status: 'prayed_on_time', label: 'On Time', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+                        { status: 'prayed_late', label: 'Late', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+                        { status: 'missed', label: 'Missed', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
+                        { status: 'not_tracked', label: 'Untracked', color: 'bg-slate-800/50 text-slate-400 border-slate-700/40' },
+                      ].map((item) => {
+                        const isSelected = currentStatus === item.status;
+                        return (
+                          <button
+                            key={item.status}
+                            type="button"
+                            onClick={() => handleSavePrayerStatus(field, item.status as DetailedPrayerStatus)}
+                            className={cn(
+                              "py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer text-center",
+                              isSelected
+                                ? item.color + " ring-1 ring-white/20 font-extrabold"
+                                : "bg-slate-950/60 border-slate-900 text-slate-400 hover:text-slate-200"
+                            )}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 

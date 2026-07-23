@@ -4,12 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { 
   ArrowLeft, Calendar, Moon, Sparkles, Plus, Trash2, Edit2, 
-  Clock, AlertTriangle, Check, BookOpen, Coffee, Award 
+  Clock, AlertTriangle, Check, BookOpen, Coffee, Award, X 
 } from 'lucide-react';
 import { db, type SleepLog, type NapLog } from '@/lib/db';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { calculateSleepDuration, calculateDailySleepScore } from '@/lib/scoring/scoring-service';
+
+function formatMinsToTime(totalMins: number): string {
+  const h = Math.floor(totalMins / 60) % 24;
+  const m = totalMins % 60;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 === 0 ? 12 : h % 12;
+  return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+}
 
 interface SleepViewProps {
   onBack: () => void;

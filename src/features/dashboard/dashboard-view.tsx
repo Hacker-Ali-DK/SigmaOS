@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bell, Flame, Shield, Check, X, BookOpen, Dumbbell, Footprints, Droplet, GraduationCap, Utensils, Moon, RefreshCw, Target, ChevronRight } from 'lucide-react';
-import { db, type RoutineTask } from '@/lib/db';
+import { db, type RoutineTask, type DetailedPrayerStatus, type PrayerDetail } from '@/lib/db';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { type DailyScores } from '@/lib/scoring/types';
 import { calculateSelfControlForDate } from '@/lib/scoring/scoring-service';
+import { calculatePrayerTimes } from '@/lib/deen/prayer-engine';
+import { resolveCalculationOptions, computePrayerTimeline } from '@/lib/deen/prayer-timeline';
 
 interface DashboardViewProps {
   onNavigateToSchedule: () => void;
@@ -39,9 +41,24 @@ export default function DashboardView({
 
   // Live queries
   const profile = useLiveQuery(() => db.userProfile.get(1));
+  const prayerLog = useLiveQuery(() => db.prayers.get(selectedDate), [selectedDate]);
   const routines = useLiveQuery(() => 
     db.routines.where({ date: selectedDate }).sortBy('order')
   );
+
+  const prayerTimes = React.useMemo(() => {
+    try {
+      const opts = resolveCalculationOptions(profile, prayerLog, selectedDate);
+      return calculatePrayerTimes(opts);
+    } catch (e) {
+      return null;
+    }
+  }, [profile, prayerLog, selectedDate]);
+
+  const timelineData = React.useMemo(() => {
+    if (!prayerTimes) return null;
+    return computePrayerTimeline(prayerTimes, prayerLog);
+  }, [prayerTimes, prayerLog]);
 
   // Recalculate recovery scores whenever routines or date change
   useEffect(() => {
@@ -66,24 +83,47 @@ export default function DashboardView({
     if (task.taskName === 'Fajr' || task.taskName === 'Dhuhr' || task.taskName === 'Asr' || task.taskName === 'Maghrib' || task.taskName === 'Isha') {
       const prayerField = task.taskName.toLowerCase() as 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
       const prayerLog = await db.prayers.get(selectedDate);
+      const now = new Date();
+      const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const newStatus: DetailedPrayerStatus = nextCompleted ? 'prayed_on_time' : 'not_tracked';
+
       if (prayerLog) {
-        await db.prayers.update(selectedDate, { [prayerField]: nextCompleted });
+        const existingDetail = (prayerLog[prayerField] && typeof prayerLog[prayerField] === 'object') ? (prayerLog[prayerField] as any) : {};
+        const updatedDetail: PrayerDetail = {
+          ...existingDetail,
+          status: newStatus,
+          completedTime: nextCompleted ? currentTimeStr : undefined
+        };
+        const updateObj: any = { [prayerField]: updatedDetail };
+        await db.prayers.update(selectedDate, updateObj);
       } else {
+        const updatedDetail: PrayerDetail = {
+          status: newStatus,
+          completedTime: nextCompleted ? currentTimeStr : undefined
+        };
+        const notTrackedDetail: PrayerDetail = { status: 'not_tracked' };
         await db.prayers.put({
           date: selectedDate,
-          fajr: false,
-          dhuhr: false,
-          asr: false,
-          maghrib: false,
-          isha: false,
-          quranMinutes: 0,
-          [prayerField]: nextCompleted
+          fajr: prayerField === 'fajr' ? updatedDetail : notTrackedDetail,
+          dhuhr: prayerField === 'dhuhr' ? updatedDetail : notTrackedDetail,
+          asr: prayerField === 'asr' ? updatedDetail : notTrackedDetail,
+          maghrib: prayerField === 'maghrib' ? updatedDetail : notTrackedDetail,
+          isha: prayerField === 'isha' ? updatedDetail : notTrackedDetail,
+          quranMinutes: 0
         });
       }
     } else if (task.taskName === "Qur'an") {
       const log = await db.prayers.get(selectedDate);
       await db.prayers.put({
-        ...(log || { date: selectedDate, fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false, quranMinutes: 0 }),
+        ...(log || {
+          date: selectedDate,
+          fajr: { status: 'not_tracked' },
+          dhuhr: { status: 'not_tracked' },
+          asr: { status: 'not_tracked' },
+          maghrib: { status: 'not_tracked' },
+          isha: { status: 'not_tracked' },
+          quranMinutes: 0
+        }),
         quranMinutes: nextCompleted ? 15 : 0
       });
     } else if (task.taskName === 'Water') {
@@ -193,6 +233,84 @@ export default function DashboardView({
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#3A86FF]"></span>
         </div>
       </div>
+
+      {/* Prayer Timeline Widget */}
+      {timelineData && (
+        <div className="glass-panel rounded-3xl p-5 bg-gradient-to-br from-[#0B0F19]/90 to-[#10172A]/90 border border-slate-900/60 flex flex-col gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <h2 className="text-sm font-bold text-white font-heading">Prayer Timeline</h2>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              {timelineData.activeInfo.activePrayer ? (
+                <span className="text-[10px] bg-cyan-950/40 border border-cyan-800/40 text-cyan-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                  Active: {timelineData.activeInfo.activePrayer}
+                </span>
+              ) : (
+                <span className="text-[10px] bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-semibold">
+                  Between Windows
+                </span>
+              )}
+              <span className="text-[10px] bg-blue-950/40 border border-blue-800/40 text-blue-300 px-2 py-0.5 rounded-full font-bold">
+                Next: {timelineData.activeInfo.nextPrayer} in {timelineData.activeInfo.countdownStr}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-2 mt-1">
+            {timelineData.items.map((item) => {
+              let stateBadge = null;
+              if (item.derivedState === 'prayed_on_time') {
+                stateBadge = <span className="text-[8px] text-emerald-400 font-extrabold">On Time</span>;
+              } else if (item.derivedState === 'prayed_late') {
+                stateBadge = <span className="text-[8px] text-amber-400 font-extrabold">Late</span>;
+              } else if (item.derivedState === 'missed') {
+                stateBadge = <span className="text-[8px] text-rose-400 font-extrabold">Missed</span>;
+              } else if (item.derivedState === 'pending') {
+                stateBadge = <span className="text-[8px] text-cyan-400 font-extrabold animate-pulse">Window Open</span>;
+              } else if (item.derivedState === 'window_expired') {
+                stateBadge = <span className="text-[8px] text-slate-500 font-bold">Expired</span>;
+              } else {
+                stateBadge = <span className="text-[8px] text-slate-600 font-medium">Upcoming</span>;
+              }
+
+              return (
+                <div 
+                  key={item.key} 
+                  className={cn(
+                    "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative",
+                    item.isCurrentWindow 
+                      ? "bg-cyan-950/30 border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20" 
+                      : item.derivedState === 'prayed_on_time'
+                        ? "bg-emerald-950/20 border-emerald-900/30"
+                        : item.derivedState === 'prayed_late'
+                          ? "bg-amber-950/20 border-amber-900/30"
+                          : item.derivedState === 'window_expired'
+                            ? "bg-slate-950/40 border-slate-900/60 opacity-80"
+                            : "bg-slate-950/30 border-slate-900/40"
+                  )}
+                >
+                  <span className="text-[10px] font-bold text-slate-300 capitalize font-heading">{item.label}</span>
+                  <span className="text-xs font-black text-white mt-0.5 font-mono tracking-tight">{item.timeStr}</span>
+                  
+                  <div className="mt-1.5">
+                    {stateBadge}
+                  </div>
+
+                  {item.completedTime && (
+                    <span className="text-[7px] text-slate-400 font-mono mt-0.5">✓ {item.completedTime}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Overall Alignment Circular Card */}
       <div className="glass-panel rounded-3xl p-6 flex items-center justify-between bg-gradient-to-br from-[#0B0F19]/90 to-[#111625]/90 border border-slate-900/60 relative overflow-hidden">

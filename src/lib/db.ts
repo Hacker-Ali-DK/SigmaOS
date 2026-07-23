@@ -21,16 +21,91 @@ export interface UserProfile {
   ishaPolicy?: 'midnight' | 'fajr';
 }
 
+export type DetailedPrayerStatus =
+  | 'prayed_on_time'
+  | 'prayed_late'
+  | 'missed'
+  | 'not_tracked';
+
+export interface PrayerDetail {
+  status: DetailedPrayerStatus;
+  scheduledTime?: string;
+  completedTime?: string;
+}
+
+export interface PrayerCalculationContext {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  method: string;
+  asrMethod: 'standard' | 'hanafi';
+  ishaPolicy: 'midnight' | 'fajr';
+}
+
 export interface PrayerLog {
   id?: number;
   date: string; // YYYY-MM-DD
-  fajr: boolean;
-  dhuhr: boolean;
-  asr: boolean;
-  maghrib: boolean;
-  isha: boolean;
+  fajr: PrayerDetail | DetailedPrayerStatus | boolean;
+  dhuhr: PrayerDetail | DetailedPrayerStatus | boolean;
+  asr: PrayerDetail | DetailedPrayerStatus | boolean;
+  maghrib: PrayerDetail | DetailedPrayerStatus | boolean;
+  isha: PrayerDetail | DetailedPrayerStatus | boolean;
+  prayerStatuses?: DetailedPrayerStatus[];
   quranMinutes: number;
+  calculationContext?: PrayerCalculationContext;
 }
+
+export function getPrayerStatus(val: any): DetailedPrayerStatus {
+  if (val === true) return 'prayed_on_time';
+  if (val === false) return 'not_tracked';
+  if (typeof val === 'string') {
+    if (val === 'prayed_on_time' || val === 'prayed_late' || val === 'missed' || val === 'not_tracked') {
+      return val as DetailedPrayerStatus;
+    }
+  }
+  if (typeof val === 'object' && val !== null && typeof val.status === 'string') {
+    return val.status as DetailedPrayerStatus;
+  }
+  return 'not_tracked';
+}
+
+export function isPrayerCompleted(val: any): boolean {
+  const status = getPrayerStatus(val);
+  return status === 'prayed_on_time' || status === 'prayed_late';
+}
+
+export function normalizePrayerDetail(val: any): PrayerDetail {
+  if (typeof val === 'object' && val !== null && typeof val.status === 'string') {
+    const detail: PrayerDetail = {
+      status: val.status as DetailedPrayerStatus
+    };
+    if (val.scheduledTime !== undefined) detail.scheduledTime = val.scheduledTime;
+    if (val.completedTime !== undefined) detail.completedTime = val.completedTime;
+    return detail;
+  }
+  return {
+    status: getPrayerStatus(val)
+  };
+}
+
+export function migrateLegacyPrayerLog(log: any): PrayerLog {
+  if (!log) return log;
+
+  const prayerNames = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
+  for (const name of prayerNames) {
+    log[name] = normalizePrayerDetail(log[name]);
+  }
+
+  log.prayerStatuses = prayerNames.map(name => (log[name] as PrayerDetail).status);
+  log.quranMinutes = typeof log.quranMinutes === 'number' ? log.quranMinutes : 0;
+
+  if (!log.calculationContext) {
+    delete log.calculationContext;
+  }
+
+  return log;
+}
+
 
 export interface DopamineUrge {
   id?: number;
@@ -194,6 +269,24 @@ export class RecoveryDB extends Dexie {
       journal: '&date',
       weight: '&date',
       naps: '++id, date',
+    });
+    this.version(5).stores({
+      userProfile: 'id',
+      prayers: '&date',
+      dopamineUrges: '++id, timestamp, strength',
+      sleep: '&date',
+      water: '&date',
+      meals: '++id, date, mealType',
+      workouts: '++id, date',
+      routines: '++id, [date+order], date',
+      goals: '++id, category, completed',
+      journal: '&date',
+      weight: '&date',
+      naps: '++id, date',
+    }).upgrade(async (tx) => {
+      await tx.table('prayers').toCollection().modify((log: any) => {
+        migrateLegacyPrayerLog(log);
+      });
     });
   }
 }

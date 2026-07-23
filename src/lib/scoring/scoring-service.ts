@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { db, isPrayerCompleted, getPrayerStatus } from '../db';
 import { type DailyScores, type ScoreDetail } from './types';
 
 // Helper to check if a date is within range
@@ -528,54 +528,78 @@ export async function calculateDeenScore(
   const positives: string[] = [];
   const negatives: string[] = [];
 
+  const prayerNames = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
+
   // 1. Daily Prayers (60%)
-  const prayerFields = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  // Check if today's routines contain prayers OR if a prayer log already exists
-  const hasPrayersInRoutine = routines.some(r => prayerFields.includes(r.taskName.toLowerCase()));
+  let trackedPrayerPointsSum = 0;
+  let trackedPrayerCount = 0;
+  const onTimeList: string[] = [];
+  const lateList: string[] = [];
+  const missedList: string[] = [];
 
-  if (prayers || hasPrayersInRoutine) {
-    let completedCount = 0;
-    const completedPrayersList: string[] = [];
-    const missedPrayersList: string[] = [];
+  prayerNames.forEach(field => {
+    let status: string | undefined = undefined;
 
-    prayerFields.forEach(field => {
-      // check database record first, otherwise check routine status
-      const completed = prayers?.[field] || routines.find(r => r.taskName.toLowerCase() === field)?.completed || false;
-      if (completed) {
-        completedCount++;
-        completedPrayersList.push(field.charAt(0).toUpperCase() + field.slice(1));
-      } else {
-        missedPrayersList.push(field.charAt(0).toUpperCase() + field.slice(1));
+    if (prayers && prayers[field] !== undefined) {
+      status = getPrayerStatus(prayers[field]);
+    } else {
+      const routineTask = routines?.find(r => r.taskName.toLowerCase() === field);
+      if (routineTask) {
+        status = routineTask.completed ? 'prayed_on_time' : undefined;
       }
-    });
+    }
 
-    const prayerScore = (completedCount / 5) * 100;
+    if (status === 'prayed_on_time') {
+      trackedPrayerPointsSum += 100;
+      trackedPrayerCount++;
+      onTimeList.push(field.charAt(0).toUpperCase() + field.slice(1));
+    } else if (status === 'prayed_late') {
+      trackedPrayerPointsSum += 50;
+      trackedPrayerCount++;
+      lateList.push(field.charAt(0).toUpperCase() + field.slice(1));
+    } else if (status === 'missed') {
+      trackedPrayerPointsSum += 0;
+      trackedPrayerCount++;
+      missedList.push(field.charAt(0).toUpperCase() + field.slice(1));
+    }
+    // not_tracked, pending, window_expired are excluded
+  });
+
+  if (trackedPrayerCount > 0) {
+    const prayerScore = Math.round(trackedPrayerPointsSum / trackedPrayerCount);
     factors.push({ name: 'Prayers', weight: 60, score: prayerScore });
 
-    if (completedCount === 5) {
-      positives.push("Completed all 5 daily prayers (Alhamdulillah!)");
-    } else if (completedCount > 0) {
-      positives.push(`Prayed: ${completedPrayersList.join(', ')}`);
-      negatives.push(`Missed: ${missedPrayersList.join(', ')}`);
-    } else {
-      negatives.push("No prayers logged yet today");
+    if (onTimeList.length > 0) {
+      positives.push(`Prayed on time: ${onTimeList.join(', ')}`);
+    }
+    if (lateList.length > 0) {
+      positives.push(`Prayed late: ${lateList.join(', ')}`);
+    }
+    if (missedList.length > 0) {
+      negatives.push(`Opportunity to make up: ${missedList.join(', ')}`);
     }
   }
 
   // 2. Qur'an Recitation (25%)
-  const quranMinutes = prayers?.quranMinutes || routines.find(r => r.taskName === "Qur'an")?.completed ? 15 : 0;
-  const hasQuranInRoutine = routines.some(r => r.taskName === "Qur'an");
+  const quranRoutine = routines?.find(r => r.taskName === "Qur'an");
+  let quranMinutes: number | undefined = undefined;
 
-  if (quranMinutes > 0 || hasQuranInRoutine) {
-    const quranScore = Math.min((quranMinutes / 30) * 100, 100);
+  if (prayers && prayers.quranMinutes !== undefined && prayers.quranMinutes !== null) {
+    quranMinutes = prayers.quranMinutes;
+  } else if (quranRoutine) {
+    quranMinutes = quranRoutine.completed ? 15 : 0;
+  }
+
+  if (quranMinutes !== undefined && (prayers?.quranMinutes !== undefined || quranRoutine !== undefined)) {
+    const quranScore = Math.min(100, Math.round((quranMinutes / 30) * 100));
     factors.push({ name: 'Qur\'an reading', weight: 25, score: quranScore });
 
     if (quranMinutes >= 15) {
-      positives.push(`Read Qur'an for ${quranMinutes} mins`);
+      positives.push(`Recited Qur'an for ${quranMinutes} mins`);
     } else if (quranMinutes > 0) {
-      negatives.push(`Read Qur'an for ${quranMinutes} mins (target: 30 mins)`);
+      negatives.push(`Recited Qur'an for ${quranMinutes} mins (target: 30 mins)`);
     } else {
-      negatives.push("Missed recitation of Qur'an");
+      negatives.push("No Qur'an recitation logged yet today");
     }
   }
 
@@ -591,11 +615,13 @@ export async function calculateDeenScore(
       }
       sumProgress += p;
     }
-    const deenGoalScore = sumProgress / activeDeenGoals.length;
+    const deenGoalScore = Math.round(sumProgress / activeDeenGoals.length);
     factors.push({ name: 'Islamic Goals', weight: 15, score: deenGoalScore });
 
     if (deenGoalScore >= 50) {
-      positives.push("Making steady progress on Deen goals");
+      positives.push("Steady progress on Islamic goals");
+    } else {
+      negatives.push("Ongoing progress on Islamic goals");
     }
   }
 
@@ -604,13 +630,13 @@ export async function calculateDeenScore(
 
   if (trackedCount === 0) {
     return {
-      score: 50,
+      score: 60,
       status: 'insufficient',
       trackedCount: 0,
       totalCount,
       positives: [],
       negatives: [],
-      recommendation: "Log your prayers or Qur'an recitation to compute Deen score."
+      recommendation: "Log your prayers or Qur'an recitation to track your Deen score."
     };
   }
 
@@ -618,15 +644,15 @@ export async function calculateDeenScore(
   const weightedSum = factors.reduce((sum, f) => sum + (f.score * f.weight), 0);
   const finalScore = Math.round(weightedSum / totalTrackedWeight);
 
-  let recommendation = "Prioritize daily prayers as anchors of your day.";
+  let recommendation = "Prioritize daily prayers as peaceful anchors of your day.";
   const lowestFactor = [...factors].sort((a, b) => a.score - b.score)[0];
   if (lowestFactor && lowestFactor.score < 80) {
-    recommendation = `Focus on improving ${lowestFactor.name.toLowerCase()} consistency tomorrow.`;
+    recommendation = `Focus on nurturing ${lowestFactor.name.toLowerCase()} consistency tomorrow.`;
   }
 
   return {
     score: Math.max(10, Math.min(finalScore, 100)),
-    status: trackedCount >= 2 ? 'completed' : 'partial',
+    status: trackedCount === totalCount ? 'completed' : 'partial',
     trackedCount,
     totalCount,
     positives,

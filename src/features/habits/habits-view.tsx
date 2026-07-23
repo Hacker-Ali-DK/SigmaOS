@@ -53,7 +53,15 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     const nextMins = Math.max(0, quranMins + increment);
     const log = await db.prayers.get(selectedDate);
     await db.prayers.put({
-      ...(log || { date: selectedDate, fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false, quranMinutes: 0 }),
+      ...(log || {
+        date: selectedDate,
+        fajr: { status: 'not_tracked' },
+        dhuhr: { status: 'not_tracked' },
+        asr: { status: 'not_tracked' },
+        maghrib: { status: 'not_tracked' },
+        isha: { status: 'not_tracked' },
+        quranMinutes: 0
+      }),
       quranMinutes: nextMins
     });
 

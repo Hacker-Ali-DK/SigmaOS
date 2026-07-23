@@ -20,8 +20,8 @@ let mockUserProfile = {
 let mockUrges: any[] = [];
 
 // Intercept Dexie database calls to run in pure Node.js
-db.userProfile.get = async () => mockUserProfile;
-db.userProfile.update = async (id, changes) => {
+(db.userProfile as any).get = async () => mockUserProfile;
+(db.userProfile as any).update = async (id: any, changes: any) => {
   mockUserProfile = { ...mockUserProfile, ...changes };
   return 1;
 };
@@ -279,7 +279,7 @@ async function runTests() {
       dailyCalorieTarget: 2500, 
       dailyWaterTarget: 3.0, 
       dailySleepTarget: 8.0, 
-      dailyScreenTimeTarget: undefined, // Legacy profile (missing target)
+      dailyScreenTimeTarget: undefined as any, // Legacy profile (missing target)
       cleanStreak: 5 
     };
 

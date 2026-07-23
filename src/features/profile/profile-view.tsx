@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, User, Settings, Bell, Database, Info, Flame, Shield, Activity, ChevronRight, BookOpen, Weight, Save, Download, Upload } from 'lucide-react';
-import { db } from '@/lib/db';
+import { db, migrateLegacyPrayerLog } from '@/lib/db';
 import { useAppStore, getLocalDateString } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -148,9 +148,12 @@ export default function ProfileView() {
   };
 
   // PWA Local Database JSON Backup Export
+  // PWA Local Database JSON Backup Export
   const handleExportBackup = async () => {
     try {
       const data = {
+        version: 5,
+        exportedAt: new Date().toISOString(),
         userProfile: await db.userProfile.toArray(),
         prayers: await db.prayers.toArray(),
         dopamineUrges: await db.dopamineUrges.toArray(),
@@ -188,55 +191,41 @@ export default function ProfileView() {
     reader.onload = async (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        
-        // Populate tables
-        if (json.userProfile) {
-          await db.userProfile.clear();
-          await db.userProfile.bulkPut(json.userProfile);
+        if (!json || typeof json !== 'object') {
+          throw new Error('Invalid JSON payload');
         }
-        if (json.prayers) {
+
+        const tables = [
+          { key: 'userProfile', store: db.userProfile },
+          { key: 'sleep', store: db.sleep },
+          { key: 'water', store: db.water },
+          { key: 'meals', store: db.meals },
+          { key: 'workouts', store: db.workouts },
+          { key: 'routines', store: db.routines },
+          { key: 'goals', store: db.goals },
+          { key: 'dopamineUrges', store: db.dopamineUrges },
+          { key: 'journal', store: db.journal },
+          { key: 'weight', store: db.weight },
+          { key: 'naps', store: db.naps },
+        ];
+
+        // Prayers table handling with lossless migration
+        if (Array.isArray(json.prayers)) {
           await db.prayers.clear();
-          await db.prayers.bulkPut(json.prayers);
+          const migrated = json.prayers.map((p: any) => migrateLegacyPrayerLog(p));
+          if (migrated.length > 0) {
+            await db.prayers.bulkPut(migrated);
+          }
         }
-        if (json.sleep) {
-          await db.sleep.clear();
-          await db.sleep.bulkPut(json.sleep);
-        }
-        if (json.water) {
-          await db.water.clear();
-          await db.water.bulkPut(json.water);
-        }
-        if (json.meals) {
-          await db.meals.clear();
-          await db.meals.bulkPut(json.meals);
-        }
-        if (json.workouts) {
-          await db.workouts.clear();
-          await db.workouts.bulkPut(json.workouts);
-        }
-        if (json.routines) {
-          await db.routines.clear();
-          await db.routines.bulkPut(json.routines);
-        }
-        if (json.goals) {
-          await db.goals.clear();
-          await db.goals.bulkPut(json.goals);
-        }
-        if (json.dopamineUrges) {
-          await db.dopamineUrges.clear();
-          await db.dopamineUrges.bulkPut(json.dopamineUrges);
-        }
-        if (json.journal) {
-          await db.journal.clear();
-          await db.journal.bulkPut(json.journal);
-        }
-        if (json.weight) {
-          await db.weight.clear();
-          await db.weight.bulkPut(json.weight);
-        }
-        if (json.naps) {
-          await db.naps.clear();
-          await db.naps.bulkPut(json.naps);
+
+        // Generic safe table population
+        for (const t of tables) {
+          if (Array.isArray(json[t.key])) {
+            await t.store.clear();
+            if (json[t.key].length > 0) {
+              await (t.store as any).bulkPut(json[t.key]);
+            }
+          }
         }
 
         alert('Backup restored successfully!');

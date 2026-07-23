@@ -6,6 +6,7 @@ import { Bot, Send, Mic, Lightbulb, User } from 'lucide-react';
 import { db } from '@/lib/db';
 import { useAppStore, getLocalDateString } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { getStructuredDeenAIContext, formatDeenAIContextForPrompt, type DeenAIContext } from '@/lib/deen/deen-ai-context';
 
 interface Message {
   id: number;
@@ -53,8 +54,10 @@ export default function CoachView() {
     setInputText('');
     setIsTyping(true);
 
-    // 2. Fetch today's scores
+    // 2. Fetch today's scores and structured Deen context
     const scores = await getDailyScoresForDate(selectedDate);
+    const deenContext = await getStructuredDeenAIContext(selectedDate, 7);
+    const formattedDeenPrompt = formatDeenAIContextForPrompt(deenContext);
 
     // 3. Generate smart response offline based on database state
     setTimeout(async () => {
@@ -74,10 +77,20 @@ export default function CoachView() {
         } else {
           responseText = `Your sleep logs look solid (around 7.5 to 8.0 hrs), keeping your Wellness score healthy at ${scores.wellness.score}%. If you are still feeling low energy, check your hydration levels. Dehydration is a common hidden cause of daytime fatigue.`;
         }
-      } else if (cleanQuery.includes('fajr') || cleanQuery.includes('missed')) {
-        responseText = `Missing Fajr impacts your Deen score (currently ${scores.deen.score}%). To adjust, plan a lighter workout session today to offset any sleep deficits, ensure you read Quran for at least 10 minutes to restore mental focus, and set double alarms for tomorrow located away from your bed.`;
-      } else if (cleanQuery.includes('consistent') || cleanQuery.includes('habit')) {
-        responseText = `Your current scores are: Overall Alignment (${scores.overallAlignment}%), Wellness (${scores.wellness.score}%), Discipline (${scores.discipline.score}%), and Deen (${scores.deen.score}%). To build consistency, focus on chaining the 'anchor habits' first: Sleep on time -> Wake for Fajr -> Hydrate. When you lock down these three pillars, your downstream energy and focus naturally follow.`;
+      } else if (cleanQuery.includes('fajr') || cleanQuery.includes('missed') || cleanQuery.includes('prayer')) {
+        const fajrStats = deenContext.prayerTracking.byPrayer.fajr;
+        const coverage = deenContext.prayerTracking.coveragePercent;
+        const onTime = deenContext.prayerTracking.onTimeCount;
+        const missed = deenContext.prayerTracking.missedCount;
+        responseText = `Based on your structured tracking context over the last ${deenContext.dateRange.days} days: Your prayer tracking coverage is ${coverage}% with ${onTime} prayed on time and ${missed} explicitly recorded missed. Fajr: ${fajrStats.onTimeCount}/${fajrStats.applicableCount} on time. Unrecorded expired prayers are kept as untracked. To improve consistency, focus on getting to bed early tonight and setting double alarms located away from your bed.`;
+      } else if (cleanQuery.includes('quran') || cleanQuery.includes('recitation')) {
+        if (deenContext.quran.status === 'untracked') {
+          responseText = `Your Qur'an tracking data is currently unrecorded/untracked. (Note: Untracked data is not treated as zero activity). To start tracking, log your daily recitation minutes in the Habits view!`;
+        } else {
+          responseText = `Qur'an Recitation Summary: ${deenContext.quran.activeDays}/${deenContext.dateRange.days} active days logged with a total of ${deenContext.quran.totalMinutes} minutes (avg ${deenContext.quran.averageMinutesPerActiveDay} min/active day). Maintaining daily consistency helps strengthen focus.`;
+        }
+      } else if (cleanQuery.includes('consistent') || cleanQuery.includes('habit') || cleanQuery.includes('deen')) {
+        responseText = `Your current alignment scores: Overall (${scores.overallAlignment}%), Wellness (${scores.wellness.score}%), Discipline (${scores.discipline.score}%), and Deen (${scores.deen.score}%). Deen tracking coverage: ${deenContext.prayerTracking.coveragePercent}% (${deenContext.prayerTracking.onTimeCount} on time). Anchor habits to lock in: Sleep on time -> Wake for Fajr -> Hydrate.`;
       } else if (cleanQuery.includes('workout') || cleanQuery.includes('late')) {
         responseText = `If you slept late and missed your target sleep window, skip high-intensity workouts today. Instead, do a light 30-minute recovery walk and prioritize hydration (drink 3.0 liters of water) to let your nervous system rest while preserving your Discipline score (currently ${scores.discipline.score}%).`;
       }
