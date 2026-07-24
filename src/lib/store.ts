@@ -24,25 +24,74 @@ interface AppState {
   getDailyScoresForDate: (date: string) => Promise<DailyScores>;
 }
 
-// Helper to get date string in YYYY-MM-DD local format
+export function getTodayDateString(timezone?: string, offsetDays = 0): string {
+  const tz = timezone || (typeof window !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Karachi') || 'Asia/Karachi';
+  const now = new Date();
+  if (offsetDays !== 0) {
+    now.setDate(now.getDate() + offsetDays);
+  }
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    return formatter.format(now);
+  } catch (e) {
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+}
+
 export function getLocalDateString(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return getTodayDateString(undefined, offsetDays);
+}
+
+export async function ensureRoutinesForDate(targetDate: string): Promise<void> {
+  const existing = await db.routines.where({ date: targetDate }).toArray();
+  if (existing.length > 0) return;
+
+  const initialRoutines = [
+    { taskName: "Fajr", timeLabel: "5:05 AM", completed: false, order: 1 },
+    { taskName: "Qur'an", timeLabel: "15 min", completed: false, order: 2 },
+    { taskName: "Workout", timeLabel: "30 min", completed: false, order: 3 },
+    { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: false, order: 4 },
+    { taskName: "Dhuhr", timeLabel: "1:15 PM", completed: false, order: 5 },
+    { taskName: "Lunch", timeLabel: "1:45 PM", completed: false, order: 6 },
+    { taskName: "Asr", timeLabel: "5:00 PM", completed: false, order: 7 },
+    { taskName: "Walk", timeLabel: "6:00 PM", completed: false, order: 8 },
+    { taskName: "Maghrib", timeLabel: "7:24 PM", completed: false, order: 9 },
+    { taskName: "Isha", timeLabel: "8:41 PM", completed: false, order: 10 },
+    { taskName: "Read Book", timeLabel: "Pending", completed: false, order: 11 },
+    { taskName: "Sleep", timeLabel: "10:30 PM", completed: false, order: 12 }
+  ];
+
+  for (const r of initialRoutines) {
+    await db.routines.add({
+      date: targetDate,
+      taskName: r.taskName,
+      timeLabel: r.timeLabel,
+      completed: false,
+      order: r.order
+    });
+  }
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentTab: 'home',
-  selectedDate: getLocalDateString(),
+  selectedDate: getTodayDateString(),
   showAddModal: false,
   isInitialized: false,
   showOnboarding: false,
 
   setTab: (tab) => set({ currentTab: tab }),
-  setSelectedDate: (date) => set({ selectedDate: date }),
+  setSelectedDate: (date) => {
+    set({ selectedDate: date });
+    ensureRoutinesForDate(date).catch(console.error);
+  },
   setShowAddModal: (show) => set({ showAddModal: show }),
 
   getDailyScoresForDate: async (date) => {
@@ -51,12 +100,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   initializeDb: async () => {
     const profile = await db.userProfile.get(1);
+    const today = getTodayDateString(profile?.timezone);
+    await ensureRoutinesForDate(today);
+
     if (profile) {
-      set({ isInitialized: true, showOnboarding: false });
+      set({ selectedDate: today, isInitialized: true, showOnboarding: false });
       return;
     }
     // No profile exists, show onboarding first
-    set({ isInitialized: true, showOnboarding: true });
+    set({ selectedDate: today, isInitialized: true, showOnboarding: true });
   },
 
   completeOnboarding: async (data) => {

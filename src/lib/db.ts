@@ -1,4 +1,8 @@
 import Dexie, { type Table } from 'dexie';
+import type { ChatMessageRecord, AIMemoryRecord, AICorrelationRecord, AILearningRecord } from '@/lib/ai/types';
+import type { EventEnvelope, EventDeadLetterRecord } from '@/lib/events/types';
+import type { ScheduledReminderRecord, NotificationHistoryRecord } from '@/lib/notifications/types';
+import type { DailyPlan, DecisionAudit, PlanRevision, Constraint } from '@/lib/planning/types';
 
 export interface UserProfile {
   id: number;
@@ -216,6 +220,18 @@ export class RecoveryDB extends Dexie {
   journal!: Table<JournalLog>;
   weight!: Table<WeightLog>;
   naps!: Table<NapLog>;
+  chatMessages!: Table<ChatMessageRecord>;
+  aiMemory!: Table<AIMemoryRecord>;
+  aiCorrelations!: Table<AICorrelationRecord>;
+  aiLearning!: Table<AILearningRecord>;
+  eventStore!: Table<EventEnvelope>;
+  eventDeadLetter!: Table<EventDeadLetterRecord>;
+  scheduledReminders!: Table<ScheduledReminderRecord>;
+  notificationHistory!: Table<NotificationHistoryRecord>;
+  dailyPlans!: Table<DailyPlan>;
+  decisionHistory!: Table<DecisionAudit>;
+  planRevisions!: Table<PlanRevision>;
+  constraintCache!: Table<Constraint>;
 
   constructor() {
     super('RecoveryDB');
@@ -287,6 +303,92 @@ export class RecoveryDB extends Dexie {
       await tx.table('prayers').toCollection().modify((log: any) => {
         migrateLegacyPrayerLog(log);
       });
+    });
+    this.version(6).stores({
+      userProfile: 'id',
+      prayers: '&date',
+      dopamineUrges: '++id, timestamp, strength',
+      sleep: '&date',
+      water: '&date',
+      meals: '++id, date, mealType',
+      workouts: '++id, date',
+      routines: '++id, [date+order], date',
+      goals: '++id, category, completed',
+      journal: '&date',
+      weight: '&date',
+      naps: '++id, date',
+      chatMessages: '++id, sessionId, timestamp',
+      aiMemory: 'key, category',
+      aiCorrelations: 'pairKey, correlation',
+      aiLearning: 'key, weight',
+    });
+    this.version(7).stores({
+      userProfile: 'id',
+      prayers: '&date',
+      dopamineUrges: '++id, timestamp, strength',
+      sleep: '&date',
+      water: '&date',
+      meals: '++id, date, mealType',
+      workouts: '++id, date',
+      routines: '++id, [date+order], date',
+      goals: '++id, category, completed',
+      journal: '&date',
+      weight: '&date',
+      naps: '++id, date',
+      chatMessages: '++id, sessionId, timestamp',
+      aiMemory: 'key, category',
+      aiCorrelations: 'pairKey, correlation',
+      aiLearning: 'key, weight',
+      eventStore: '++id, traceId, topic, priority, acknowledged',
+      eventDeadLetter: '++id, topic, timestamp',
+    });
+    this.version(8).stores({
+      userProfile: 'id',
+      prayers: '&date',
+      dopamineUrges: '++id, timestamp, strength',
+      sleep: '&date',
+      water: '&date',
+      meals: '++id, date, mealType',
+      workouts: '++id, date',
+      routines: '++id, [date+order], date',
+      goals: '++id, category, completed',
+      journal: '&date',
+      weight: '&date',
+      naps: '++id, date',
+      chatMessages: '++id, sessionId, timestamp',
+      aiMemory: 'key, category',
+      aiCorrelations: 'pairKey, correlation',
+      aiLearning: 'key, weight',
+      eventStore: '++id, traceId, topic, priority, acknowledged',
+      eventDeadLetter: '++id, topic, timestamp',
+      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status',
+      notificationHistory: '++id, reminderId, category, timestamp, userAction',
+    });
+    this.version(9).stores({
+      userProfile: 'id',
+      prayers: '&date',
+      dopamineUrges: '++id, timestamp, strength',
+      sleep: '&date',
+      water: '&date',
+      meals: '++id, date, mealType',
+      workouts: '++id, date',
+      routines: '++id, [date+order], date',
+      goals: '++id, category, completed',
+      journal: '&date',
+      weight: '&date',
+      naps: '++id, date',
+      chatMessages: '++id, sessionId, timestamp',
+      aiMemory: 'key, category',
+      aiCorrelations: 'pairKey, correlation',
+      aiLearning: 'key, weight',
+      eventStore: '++id, traceId, topic, priority, acknowledged',
+      eventDeadLetter: '++id, topic, timestamp',
+      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status',
+      notificationHistory: '++id, reminderId, category, timestamp, userAction',
+      dailyPlans: '&date, planId, status, createdAt',
+      decisionHistory: '++id, decisionId, category, priority, status',
+      planRevisions: '++id, [planId+revisionId], parentRevisionId, timestamp',
+      constraintCache: 'key, category, isHard',
     });
   }
 }

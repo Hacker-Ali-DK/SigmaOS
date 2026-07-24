@@ -23,15 +23,21 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
 
   // Pagination helpers
   const handlePrevDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    const [y, m, day] = selectedDate.split('-').map(Number);
+    const d = new Date(y, m - 1, day - 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const date = String(d.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${date}`);
   };
 
   const handleNextDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    const [y, m, day] = selectedDate.split('-').map(Number);
+    const d = new Date(y, m - 1, day + 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const date = String(d.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${date}`);
   };
 
   const handleToggleTask = async (task: RoutineTask) => {

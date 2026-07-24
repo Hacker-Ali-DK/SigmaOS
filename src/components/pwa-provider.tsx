@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Sparkles, Calendar, Activity, Moon, Shield } from 'lucide-react';
 
+import { dayBoundaryManager } from '@/lib/day-boundary-manager';
+
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
   const { isInitialized, showOnboarding, initializeDb, completeOnboarding } = useAppStore();
   const [swRegistered, setSwRegistered] = useState(false);
@@ -17,8 +19,9 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   const [sleepTarget, setSleepTarget] = useState('8.0');
 
   useEffect(() => {
-    // 1. Initialize IndexedDB
+    // 1. Initialize IndexedDB & Day Boundary Monitor
     initializeDb();
+    dayBoundaryManager.init();
 
     // 2. Register Service Worker for offline PWA
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
