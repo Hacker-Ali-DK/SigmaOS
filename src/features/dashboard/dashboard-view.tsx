@@ -42,8 +42,15 @@ export default function DashboardView({
   // Live queries
   const profile = useLiveQuery(() => db.userProfile.get(1));
   const prayerLog = useLiveQuery(() => db.prayers.get(selectedDate), [selectedDate]);
+  const sleepLog = useLiveQuery(() => db.sleep.get(selectedDate), [selectedDate]);
+  const waterLog = useLiveQuery(() => db.water.get(selectedDate), [selectedDate]);
+  const mealLogs = useLiveQuery(() => db.meals.where({ date: selectedDate }).toArray(), [selectedDate]);
+  const workoutLogs = useLiveQuery(() => db.workouts.where({ date: selectedDate }).toArray(), [selectedDate]);
+  const journalLog = useLiveQuery(() => db.journal.get(selectedDate), [selectedDate]);
+  const dopamineUrges = useLiveQuery(() => db.dopamineUrges.toArray());
   const routines = useLiveQuery(() => 
-    db.routines.where({ date: selectedDate }).sortBy('order')
+    db.routines.where({ date: selectedDate }).sortBy('order'),
+    [selectedDate]
   );
 
   const prayerTimes = React.useMemo(() => {
@@ -60,7 +67,7 @@ export default function DashboardView({
     return computePrayerTimeline(prayerTimes, prayerLog);
   }, [prayerTimes, prayerLog]);
 
-  // Recalculate recovery scores whenever routines or date change
+  // Recalculate recovery scores whenever routines, health logs, prayers, or date change
   useEffect(() => {
     async function updateScores() {
       const res = await getDailyScoresForDate(selectedDate);
@@ -69,7 +76,7 @@ export default function DashboardView({
       setSelfControlDetail(sc);
     }
     updateScores();
-  }, [routines, selectedDate, getDailyScoresForDate]);
+  }, [routines, sleepLog, waterLog, mealLogs, workoutLogs, journalLog, prayerLog, dopamineUrges, selectedDate, getDailyScoresForDate]);
 
   // Toggle routine completion status
   const handleToggleRoutine = async (task: RoutineTask) => {

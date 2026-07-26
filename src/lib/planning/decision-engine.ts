@@ -23,6 +23,7 @@ export interface CandidateDecisionInput {
   proposedTimeRange?: { startTimeMs: number; endTimeMs: number };
   targetBlockId?: string;
   proposedPlanId?: string;
+  sessionId?: string; // Reuse parent session ID if called within active plan generation
 }
 
 class DecisionEngineManager {
@@ -33,12 +34,15 @@ class DecisionEngineManager {
    */
   async evaluateDecision(input: CandidateDecisionInput): Promise<{ decision: Decision; audit: DecisionAudit }> {
     const startTimeMs = Date.now();
-    const sessionId = `dec_sess_${input.dateStr}_${Date.now()}`;
+    const isParentSession = Boolean(input.sessionId);
+    const sessionId = input.sessionId || `dec_sess_${input.dateStr}_${Date.now()}`;
 
-    // 1. Acquire Planning Session Lock for exclusive mutation
-    const lockAcquired = await planningSessionLock.acquireLock(sessionId);
-    if (!lockAcquired) {
-      throw new Error(`[DecisionEngine] Locked: Concurrent decision evaluation active.`);
+    // 1. Acquire Planning Session Lock for exclusive mutation if not reusing parent session
+    if (!isParentSession) {
+      const lockAcquired = await planningSessionLock.acquireLock(sessionId);
+      if (!lockAcquired) {
+        throw new Error(`[DecisionEngine] Locked: Concurrent decision evaluation active.`);
+      }
     }
 
     try {
@@ -142,8 +146,10 @@ class DecisionEngineManager {
 
       return { decision, audit };
     } finally {
-      // Always release session lock
-      planningSessionLock.releaseLock(sessionId);
+      // Release session lock only if acquired by decision engine (not reusing parent session)
+      if (!isParentSession) {
+        planningSessionLock.releaseLock(sessionId);
+      }
     }
   }
 

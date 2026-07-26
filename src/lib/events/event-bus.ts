@@ -58,8 +58,8 @@ class EventBusEngine {
     const timestamp = Date.now();
     const idempotencyKey = eventReliabilityManager.generateIdempotencyKey(topic, timestamp, payload);
 
-    // Duplicate event check
-    if (eventReliabilityManager.isDuplicate(idempotencyKey)) {
+    // Duplicate event check (read-only)
+    if (eventReliabilityManager.hasDuplicate(idempotencyKey)) {
       return null;
     }
 
@@ -83,6 +83,9 @@ class EventBusEngine {
     } catch (err) {
       console.warn("[EventBus] Event persistence skipped:", err);
     }
+
+    // Mark idempotency key as processed
+    eventReliabilityManager.markProcessed(idempotencyKey);
 
     // Queue for performance-optimized execution
     this.performanceQueue.enqueue(envelope, (envelopesToProcess) => {
@@ -117,11 +120,30 @@ class EventBusEngine {
 
   /**
    * Wildcard topic pattern matching (e.g. 'log.*.created' or 'score.#')
+   * '*' = exactly one topic segment; '#' = zero or more trailing segments
    */
   private isTopicMatch(pattern: string, topic: string): boolean {
     if (pattern === '#' || pattern === '*' || pattern === topic) return true;
-    const regexPattern = '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '[^.] process+').replace(/#/g, '.*') + '$';
-    return new RegExp(regexPattern).test(topic);
+
+    const patternSegments = pattern.split('.');
+    const topicSegments = topic.split('.');
+
+    if (patternSegments[patternSegments.length - 1] === '#') {
+      const basePatternSegments = patternSegments.slice(0, -1);
+      if (topicSegments.length < basePatternSegments.length) return false;
+      for (let i = 0; i < basePatternSegments.length; i++) {
+        const p = basePatternSegments[i];
+        if (p !== '*' && p !== topicSegments[i]) return false;
+      }
+      return true;
+    }
+
+    if (patternSegments.length !== topicSegments.length) return false;
+    for (let i = 0; i < patternSegments.length; i++) {
+      const p = patternSegments[i];
+      if (p !== '*' && p !== topicSegments[i]) return false;
+    }
+    return true;
   }
 
   /**

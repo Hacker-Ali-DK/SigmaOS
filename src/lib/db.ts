@@ -361,7 +361,7 @@ export class RecoveryDB extends Dexie {
       aiLearning: 'key, weight',
       eventStore: '++id, traceId, topic, priority, acknowledged',
       eventDeadLetter: '++id, topic, timestamp',
-      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status',
+      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status, isSolarDependent',
       notificationHistory: '++id, reminderId, category, timestamp, userAction',
     });
     this.version(9).stores({
@@ -383,11 +383,11 @@ export class RecoveryDB extends Dexie {
       aiLearning: 'key, weight',
       eventStore: '++id, traceId, topic, priority, acknowledged',
       eventDeadLetter: '++id, topic, timestamp',
-      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status',
+      scheduledReminders: '++id, reminderId, category, triggerTimestamp, priority, status, isSolarDependent',
       notificationHistory: '++id, reminderId, category, timestamp, userAction',
       dailyPlans: '&date, planId, status, createdAt',
       decisionHistory: '++id, decisionId, category, priority, status',
-      planRevisions: '++id, [planId+revisionId], parentRevisionId, timestamp',
+      planRevisions: '++id, planId, [planId+revisionId], parentRevisionId, timestamp',
       constraintCache: 'key, category, isHard',
     });
   }

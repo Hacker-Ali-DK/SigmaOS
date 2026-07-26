@@ -19,19 +19,29 @@ class EventReliabilityManager {
   }
 
   /**
-   * Checks if an event has already been processed (Idempotency Check)
+   * Checks if an event key has already been marked processed (read only, no state mutation)
+   */
+  hasDuplicate(idempotencyKey: string): boolean {
+    return this.processedKeys.has(idempotencyKey);
+  }
+
+  /**
+   * Alias for backward compatibility
    */
   isDuplicate(idempotencyKey: string): boolean {
-    if (this.processedKeys.has(idempotencyKey)) {
-      return true;
-    }
+    return this.hasDuplicate(idempotencyKey);
+  }
+
+  /**
+   * Registers an event idempotency key after successful publication
+   */
+  markProcessed(idempotencyKey: string): void {
     this.processedKeys.add(idempotencyKey);
     // Keep in-memory bloom filter bounded at 500 keys
     if (this.processedKeys.size > 500) {
       const firstKey = this.processedKeys.values().next().value;
       if (firstKey) this.processedKeys.delete(firstKey);
     }
-    return false;
   }
 
   /**

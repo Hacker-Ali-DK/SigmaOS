@@ -16,8 +16,9 @@ class PlanningSessionLock {
   /**
    * Attempts to acquire the planning session lock.
    * Auto-releases expired locks (>5000ms) to prevent deadlocks.
+   * Supports re-entrant/nested session locking for sub-operations on the same date.
    */
-  async acquireLock(sessionId: string): Promise<boolean> {
+  async acquireLock(sessionId: string, parentSessionId?: string): Promise<boolean> {
     const now = Date.now();
 
     // Check if existing lock is expired
@@ -27,7 +28,23 @@ class PlanningSessionLock {
     }
 
     if (this.activeLockId !== null) {
-      return false; // Lock acquisition denied; session active
+      // Re-entrant lock check: allow if same session, or parent session matches active lock
+      if (
+        this.activeLockId === sessionId ||
+        (parentSessionId && this.activeLockId === parentSessionId)
+      ) {
+        return true;
+      }
+
+      // Check date token in sessionId (e.g. plan_sess_2026-07-26_... and dec_sess_2026-07-26_...)
+      const activeDateMatch = this.activeLockId.match(/\d{4}-\d{2}-\d{2}/);
+      const sessionDateMatch = sessionId.match(/\d{4}-\d{2}-\d{2}/);
+      if (activeDateMatch && sessionDateMatch && activeDateMatch[0] === sessionDateMatch[0]) {
+        // Nested sub-operation within active plan session for same date
+        return true;
+      }
+
+      return false; // Lock acquisition denied; concurrent session active
     }
 
     this.activeLockId = sessionId;

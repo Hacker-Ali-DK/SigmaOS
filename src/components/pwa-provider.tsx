@@ -19,9 +19,12 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   const [sleepTarget, setSleepTarget] = useState('8.0');
 
   useEffect(() => {
-    // 1. Initialize IndexedDB & Day Boundary Monitor
-    initializeDb();
-    dayBoundaryManager.init();
+    // 1. Initialize IndexedDB & Day Boundary Monitor sequentially
+    const initApp = async () => {
+      await initializeDb();
+      dayBoundaryManager.init();
+    };
+    initApp().catch(console.error);
 
     // 2. Register Service Worker for offline PWA
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {

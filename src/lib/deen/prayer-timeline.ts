@@ -49,7 +49,7 @@ export function resolveCalculationOptions(profile: Partial<UserProfile> | null |
     timezone: profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'Asia/Karachi',
     method: profile?.prayerMethod ?? 'karachi',
     asrMethod: profile?.asrMethod ?? 'standard',
-    ishaPolicy: profile?.ishaPolicy ?? 'midnight',
+    ishaPolicy: profile?.ishaPolicy ?? 'fajr',
     date: dateStr
   };
 }

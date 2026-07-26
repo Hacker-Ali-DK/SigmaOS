@@ -1,19 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import PWAProvider from "@/components/pwa-provider";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  display: "swap",
-});
+const inter = { variable: "font-sans" };
+const outfit = { variable: "font-heading" };
 
 export const metadata: Metadata = {
   title: "Recovery+ - AI Life Companion",

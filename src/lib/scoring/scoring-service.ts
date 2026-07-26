@@ -13,12 +13,59 @@ export interface SelfControlDetail {
   relapsesToday: number;
 }
 
-// Calculate self control score based on urges logged today
-export async function calculateSelfControlForDate(dateStr: string): Promise<SelfControlDetail> {
+export function deduplicateRoutinesInput(routines: any[]): any[] {
+  if (!routines || routines.length === 0) return [];
+  const map = new Map<string, any>();
+  for (const r of routines) {
+    if (!r || !r.taskName) continue;
+    const key = String(r.taskName).toLowerCase().trim();
+    if (!map.has(key)) {
+      map.set(key, r);
+    } else {
+      const existing = map.get(key);
+      if (!existing.completed && r.completed) {
+        map.set(key, r);
+      }
+    }
+  }
+  return Array.from(map.values());
+}
+
+export function getTimezoneOfDayBounds(dateStr: string, timezone?: string): { startOfDay: number; endOfDay: number } {
   const [year, month, day] = dateStr.split('-').map(Number);
+  const tz = timezone || 'Asia/Karachi';
+
+  try {
+    const formatPart = (date: Date) => {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      return formatter.format(date);
+    };
+
+    const baseMidnightUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    const dateFormatted = formatPart(baseMidnightUTC);
+    if (dateFormatted === dateStr) {
+      // Local matches UTC base
+    }
+  } catch (e) {
+    // Fallthrough to standard local midnight
+  }
+
   const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
   const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999).getTime();
-  
+
+  return { startOfDay, endOfDay };
+}
+
+// Calculate self control score based on urges logged today
+export async function calculateSelfControlForDate(dateStr: string): Promise<SelfControlDetail> {
+  const profile = await db.userProfile.get(1);
+  const { startOfDay, endOfDay } = getTimezoneOfDayBounds(dateStr, profile?.timezone);
+
   const dailyUrges = await db.dopamineUrges
     .where('timestamp')
     .between(startOfDay, endOfDay, true, true)
@@ -376,10 +423,11 @@ export async function calculateWellnessScore(
 
 export async function calculateDisciplineScore(
   date: string,
-  routines: any[],
+  rawRoutines: any[],
   journal: any,
   activeGoals: any[]
 ): Promise<ScoreDetail> {
+  const routines = deduplicateRoutinesInput(rawRoutines);
   const profile = await db.userProfile.get(1);
   const screenTimeLimit = profile?.dailyScreenTimeTarget ?? 4.0;
 
@@ -521,9 +569,10 @@ export async function calculateDisciplineScore(
 export async function calculateDeenScore(
   date: string,
   prayers: any,
-  routines: any[],
+  rawRoutines: any[],
   activeGoals: any[]
 ): Promise<ScoreDetail> {
+  const routines = deduplicateRoutinesInput(rawRoutines);
   const factors: { weight: number; score: number; name: string }[] = [];
   const positives: string[] = [];
   const negatives: string[] = [];

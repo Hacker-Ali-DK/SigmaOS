@@ -50,33 +50,76 @@ export function getLocalDateString(offsetDays = 0): string {
   return getTodayDateString(undefined, offsetDays);
 }
 
+const inFlightRoutinesMap = new Map<string, Promise<void>>();
+
 export async function ensureRoutinesForDate(targetDate: string): Promise<void> {
-  const existing = await db.routines.where({ date: targetDate }).toArray();
-  if (existing.length > 0) return;
+  if (inFlightRoutinesMap.has(targetDate)) {
+    return inFlightRoutinesMap.get(targetDate)!;
+  }
 
-  const initialRoutines = [
-    { taskName: "Fajr", timeLabel: "5:05 AM", completed: false, order: 1 },
-    { taskName: "Qur'an", timeLabel: "15 min", completed: false, order: 2 },
-    { taskName: "Workout", timeLabel: "30 min", completed: false, order: 3 },
-    { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: false, order: 4 },
-    { taskName: "Dhuhr", timeLabel: "1:15 PM", completed: false, order: 5 },
-    { taskName: "Lunch", timeLabel: "1:45 PM", completed: false, order: 6 },
-    { taskName: "Asr", timeLabel: "5:00 PM", completed: false, order: 7 },
-    { taskName: "Walk", timeLabel: "6:00 PM", completed: false, order: 8 },
-    { taskName: "Maghrib", timeLabel: "7:24 PM", completed: false, order: 9 },
-    { taskName: "Isha", timeLabel: "8:41 PM", completed: false, order: 10 },
-    { taskName: "Read Book", timeLabel: "Pending", completed: false, order: 11 },
-    { taskName: "Sleep", timeLabel: "10:30 PM", completed: false, order: 12 }
-  ];
+  const promise = (async () => {
+    const existing = await db.routines.where({ date: targetDate }).toArray();
+    if (existing.length > 0) {
+      // Perform deduplication check and pruning if duplicates exist
+      const groups = new Map<string, RoutineTask[]>();
+      for (const item of existing) {
+        const key = item.taskName.toLowerCase().trim();
+        const list = groups.get(key) || [];
+        list.push(item);
+        groups.set(key, list);
+      }
 
-  for (const r of initialRoutines) {
-    await db.routines.add({
-      date: targetDate,
-      taskName: r.taskName,
-      timeLabel: r.timeLabel,
-      completed: false,
-      order: r.order
-    });
+      const toDeleteIds: number[] = [];
+      for (const list of groups.values()) {
+        if (list.length > 1) {
+          // Preserve completed record if one exists; otherwise keep the first record
+          const completedItem = list.find(item => item.completed);
+          const keepItem = completedItem || list[0];
+          for (const item of list) {
+            if (item.id !== keepItem.id && item.id !== undefined) {
+              toDeleteIds.push(item.id);
+            }
+          }
+        }
+      }
+
+      if (toDeleteIds.length > 0) {
+        await db.routines.bulkDelete(toDeleteIds);
+      }
+      return;
+    }
+
+    const initialRoutines = [
+      { taskName: "Fajr", timeLabel: "5:05 AM", completed: false, order: 1 },
+      { taskName: "Qur'an", timeLabel: "15 min", completed: false, order: 2 },
+      { taskName: "Workout", timeLabel: "30 min", completed: false, order: 3 },
+      { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: false, order: 4 },
+      { taskName: "Dhuhr", timeLabel: "1:15 PM", completed: false, order: 5 },
+      { taskName: "Lunch", timeLabel: "1:45 PM", completed: false, order: 6 },
+      { taskName: "Asr", timeLabel: "5:00 PM", completed: false, order: 7 },
+      { taskName: "Walk", timeLabel: "6:00 PM", completed: false, order: 8 },
+      { taskName: "Maghrib", timeLabel: "7:24 PM", completed: false, order: 9 },
+      { taskName: "Isha", timeLabel: "8:41 PM", completed: false, order: 10 },
+      { taskName: "Read Book", timeLabel: "Pending", completed: false, order: 11 },
+      { taskName: "Sleep", timeLabel: "10:30 PM", completed: false, order: 12 }
+    ];
+
+    for (const r of initialRoutines) {
+      await db.routines.add({
+        date: targetDate,
+        taskName: r.taskName,
+        timeLabel: r.timeLabel,
+        completed: false,
+        order: r.order
+      });
+    }
+  })();
+
+  inFlightRoutinesMap.set(targetDate, promise);
+  try {
+    await promise;
+  } finally {
+    inFlightRoutinesMap.delete(targetDate);
   }
 }
 

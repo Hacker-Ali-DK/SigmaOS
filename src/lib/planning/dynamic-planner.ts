@@ -74,7 +74,7 @@ class DynamicPlannerManager {
         score
       };
 
-      // 7. Evaluate Plan Proposal via Stage 4 Decision Engine
+      // 7. Evaluate Plan Proposal via Stage 4 Decision Engine reusing parent session lock
       const decResult = await decisionEngineManager.evaluateDecision({
         category: 'routine',
         intent: `Construct 24h Daily Plan for ${dateStr}`,
@@ -82,7 +82,8 @@ class DynamicPlannerManager {
         rawConfidence: 0.95,
         securityLevel: 1,
         dateStr,
-        proposedPlanId: planId
+        proposedPlanId: planId,
+        sessionId
       });
 
       if (decResult.decision.status === 'rejected') {

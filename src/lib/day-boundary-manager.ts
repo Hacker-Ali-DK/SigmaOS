@@ -25,6 +25,59 @@ class DayBoundaryManager {
   }
 
   /**
+   * Finalizes previous day clean streak and updates userProfile and goals
+   */
+  async finalizeCleanStreak(previousDate: string, currentDate: string): Promise<number> {
+    const profile = await db.userProfile.get(1);
+    if (!profile) return 0;
+
+    const datesToFinalize: string[] = [];
+    let curr = new Date(previousDate);
+    const end = new Date(currentDate);
+
+    while (curr < end) {
+      const y = curr.getFullYear();
+      const m = String(curr.getMonth() + 1).padStart(2, '0');
+      const d = String(curr.getDate()).padStart(2, '0');
+      datesToFinalize.push(`${y}-${m}-${d}`);
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    let streak = profile.cleanStreak ?? 0;
+
+    for (const dateStr of datesToFinalize) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const startMs = new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
+      const endMs = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+
+      const urges = await db.dopamineUrges
+        .where('timestamp')
+        .between(startMs, endMs, true, true)
+        .toArray();
+
+      const relapsed = urges.some(u => u.resisted === false);
+      if (relapsed) {
+        streak = 0;
+      } else {
+        streak += 1;
+      }
+    }
+
+    await db.userProfile.update(1, { cleanStreak: streak });
+
+    const goals = await db.goals.toArray();
+    const cleanStreakGoal = goals.find(g => g.title === "Clean Streak");
+    if (cleanStreakGoal && cleanStreakGoal.id) {
+      await db.goals.update(cleanStreakGoal.id, {
+        currentValue: streak,
+        completed: streak >= cleanStreakGoal.targetValue
+      });
+    }
+
+    return streak;
+  }
+
+  /**
    * Core day-boundary transition check
    */
   async checkDayBoundary(): Promise<void> {
@@ -46,22 +99,25 @@ class DayBoundaryManager {
         const previousDate = this.activeTodayDate;
         this.activeTodayDate = currentTodayDate;
 
-        // 1. Ensure routines exist for the new date
+        // 1. Finalize clean streak for completed previous day(s)
+        await this.finalizeCleanStreak(previousDate, currentTodayDate);
+
+        // 2. Ensure routines exist for the new date
         await ensureRoutinesForDate(currentTodayDate);
 
-        // 2. If user was viewing yesterday's "today", seamlessly transition UI to new date
+        // 3. If user was viewing yesterday's "today", seamlessly transition UI to new date
         const store = useAppStore.getState();
         if (store.selectedDate === previousDate) {
           store.setSelectedDate(currentTodayDate);
         }
 
-        // 3. Recalibrate Phase 6 Notification Engine for new solar day
+        // 4. Recalibrate Phase 6 Notification Engine for new solar day
         await notificationSchedulingEngine.recalibrateSolarSchedules(currentTodayDate);
 
-        // 4. Trigger Phase 7 Dynamic Daily Planner for new day
+        // 5. Trigger Phase 7 Dynamic Daily Planner for new day
         await dynamicPlannerManager.generateDailyPlan(currentTodayDate, 'midnight_recalibration');
 
-        // 5. Emit DAY_CHANGED Event to Event Bus
+        // 6. Emit DAY_CHANGED Event to Event Bus
         await eventBus.publish(StandardEvents.DAY_CHANGED, {
           previousDate,
           currentDate: currentTodayDate,
