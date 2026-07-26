@@ -33,6 +33,7 @@ export interface PlanRevision {
   readonly generatedAt: number;
   readonly generatedBy: PlanGenerationReason;
   readonly plannerVersion: string;
+  readonly timeBlocks?: TimeBlock[];
 }
 
 export interface PlanScore {

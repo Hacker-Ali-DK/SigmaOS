@@ -49,17 +49,18 @@ class DynamicPlannerManager {
       const revisionIndex = existingRevisions.length;
       const revisionId = `rev_${planId}_R${revisionIndex}`;
 
+      // 4. Construct TimeBlocks (Hard Constraints -> Soft Tasks -> Splitting -> Buffers)
+      const timeBlocks = await this.constructTimeBlocks(dateStr, planId, constraints, userTasks);
+
       const revision: PlanRevision = {
         planId,
         revisionId,
         parentRevisionId,
         generatedAt: Date.now(),
         generatedBy: reason,
-        plannerVersion: 'v7.1'
+        plannerVersion: 'v7.1',
+        timeBlocks: [...timeBlocks]
       };
-
-      // 4. Construct TimeBlocks (Hard Constraints -> Soft Tasks -> Splitting -> Buffers)
-      const timeBlocks = await this.constructTimeBlocks(dateStr, planId, constraints, userTasks);
 
       // 5. Evaluate Multi-Objective Score (DYI) via Stage 5 Optimizer
       const score = multiObjectiveOptimizer.calculatePlanScore(timeBlocks, constraints, userTasks);

@@ -155,6 +155,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   completeOnboarding: async (data) => {
+    const existingProfile = await db.userProfile.get(1);
+    const tz = (typeof window !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'Asia/Karachi';
+
     // 1. Create user profile in DB
     await db.userProfile.put({
       id: 1,
@@ -163,7 +166,16 @@ export const useAppStore = create<AppState>((set, get) => ({
       dailyCalorieTarget: 2500,
       dailyWaterTarget: 3.0,
       dailySleepTarget: data.sleepTarget || 8.0,
-      cleanStreak: data.cleanStreak || 0
+      cleanStreak: data.cleanStreak || 0,
+      timezone: tz,
+      lastActiveDate: getTodayDateString(tz, -1),
+      prayerMethod: existingProfile?.prayerMethod || 'karachi',
+      asrMethod: existingProfile?.asrMethod || 'standard',
+      ishaPolicy: existingProfile?.ishaPolicy || 'fajr',
+      latitude: existingProfile?.latitude,
+      longitude: existingProfile?.longitude,
+      city: existingProfile?.city,
+      country: existingProfile?.country
     });
 
     // 2. Create goals based on user input

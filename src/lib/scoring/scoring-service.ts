@@ -457,7 +457,8 @@ export async function calculateDisciplineScore(
     r.completed && (r.taskName.toLowerCase().includes('study') || r.taskName.toLowerCase().includes('programming') || r.taskName.toLowerCase().includes('learn'))
   );
   const studyHours = completedStudyRoutines.reduce((sum, r) => {
-    const match = r.timeLabel.match(/(\d+(\.\d+)?)\s*Hrs/i);
+    const label = (r && typeof r.timeLabel === 'string') ? r.timeLabel : '';
+    const match = label.match(/(\d+(\.\d+)?)\s*Hrs/i);
     return sum + (match ? parseFloat(match[1]) : 2.5); // default 2.5 hrs if checked
   }, 0);
 

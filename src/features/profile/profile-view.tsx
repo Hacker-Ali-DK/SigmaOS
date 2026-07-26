@@ -28,7 +28,7 @@ export default function ProfileView() {
   const [tz, setTz] = useState('Asia/Karachi');
   const [prayerMethod, setPrayerMethod] = useState<'karachi' | 'mwl' | 'umm_al_qura' | 'isna'>('karachi');
   const [asrMethod, setAsrMethod] = useState<'standard' | 'hanafi'>('standard');
-  const [ishaPolicy, setIshaPolicy] = useState<'midnight' | 'fajr'>('midnight');
+  const [ishaPolicy, setIshaPolicy] = useState<'midnight' | 'fajr'>('fajr');
 
   // Journal State
   const [journalText, setJournalText] = useState('');
@@ -65,7 +65,7 @@ export default function ProfileView() {
       setTz(profile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'Asia/Karachi');
       setPrayerMethod(profile.prayerMethod ?? 'karachi');
       setAsrMethod(profile.asrMethod ?? 'standard');
-      setIshaPolicy(profile.ishaPolicy ?? 'midnight');
+      setIshaPolicy(profile.ishaPolicy ?? 'fajr');
     }
     setProfileView('settings');
   };

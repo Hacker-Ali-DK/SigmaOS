@@ -75,7 +75,8 @@ class UserApprovalPipelineManager {
       parentRevisionId: currentPlan.revision.revisionId,
       generatedAt: Date.now(),
       generatedBy: 'adaptive_reschedule',
-      plannerVersion: 'v7.1'
+      plannerVersion: 'v7.1',
+      timeBlocks: [...modifiedBlocks]
     };
 
     const modifiedPlan: DailyPlan = {
@@ -102,7 +103,7 @@ class UserApprovalPipelineManager {
   }
 
   /**
-   * Rollback to Target Revision: Traverses revision chain and restores target plan state
+   * Rollback to Target Revision: Traverses revision chain and restores target plan state and timeBlocks
    */
   async rollbackToRevision(planId: string, targetRevisionId: string): Promise<DailyPlan | null> {
     const targetRev = await db.planRevisions.where({ planId }).filter(r => r.revisionId === targetRevisionId).first();
@@ -114,9 +115,12 @@ class UserApprovalPipelineManager {
     const plan = await db.dailyPlans.where({ planId }).first();
     if (!plan) return null;
 
+    const restoredTimeBlocks = targetRev.timeBlocks ? [...targetRev.timeBlocks] : plan.timeBlocks;
+
     const rolledBackPlan: DailyPlan = {
       ...plan,
       revision: targetRev,
+      timeBlocks: restoredTimeBlocks,
       status: 'executing'
     };
 

@@ -23,6 +23,7 @@ export interface UserProfile {
   prayerMethod?: 'karachi' | 'mwl' | 'umm_al_qura' | 'isna';
   asrMethod?: 'standard' | 'hanafi';
   ishaPolicy?: 'midnight' | 'fajr';
+  lastActiveDate?: string; // Last finalized calendar date YYYY-MM-DD
 }
 
 export type DetailedPrayerStatus =

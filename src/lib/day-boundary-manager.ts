@@ -25,25 +25,37 @@ class DayBoundaryManager {
   }
 
   /**
-   * Finalizes previous day clean streak and updates userProfile and goals
+   * Finalizes clean streak for unprocessed dates strictly between lastFinalizedDate and currentDate
    */
-  async finalizeCleanStreak(previousDate: string, currentDate: string): Promise<number> {
+  async finalizeCleanStreak(lastFinalizedDate: string, currentDate: string): Promise<number> {
     const profile = await db.userProfile.get(1);
     if (!profile) return 0;
 
+    const tz = profile.timezone || 'Asia/Karachi';
     const datesToFinalize: string[] = [];
-    let curr = new Date(previousDate);
-    const end = new Date(currentDate);
 
-    while (curr < end) {
-      const y = curr.getFullYear();
-      const m = String(curr.getMonth() + 1).padStart(2, '0');
-      const d = String(curr.getDate()).padStart(2, '0');
+    // Parse start date (day after lastFinalizedDate)
+    const [startY, startM, startD] = lastFinalizedDate.split('-').map(Number);
+    let curr = new Date(Date.UTC(startY, startM - 1, startD));
+    curr.setUTCDate(curr.getUTCDate() + 1); // Move to first unfinalized day
+
+    const [endY, endM, endD] = currentDate.split('-').map(Number);
+    const endDate = new Date(Date.UTC(endY, endM - 1, endD));
+
+    while (curr < endDate) {
+      const y = curr.getUTCFullYear();
+      const m = String(curr.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(curr.getUTCDate()).padStart(2, '0');
       datesToFinalize.push(`${y}-${m}-${d}`);
-      curr.setDate(curr.getDate() + 1);
+      curr.setUTCDate(curr.getUTCDate() + 1);
+    }
+
+    if (datesToFinalize.length === 0) {
+      return profile.cleanStreak ?? 0;
     }
 
     let streak = profile.cleanStreak ?? 0;
+    let lastProcessed = lastFinalizedDate;
 
     for (const dateStr of datesToFinalize) {
       const [y, m, d] = dateStr.split('-').map(Number);
@@ -61,9 +73,10 @@ class DayBoundaryManager {
       } else {
         streak += 1;
       }
+      lastProcessed = dateStr;
     }
 
-    await db.userProfile.update(1, { cleanStreak: streak });
+    await db.userProfile.update(1, { cleanStreak: streak, lastActiveDate: lastProcessed });
 
     const goals = await db.goals.toArray();
     const cleanStreakGoal = goals.find(g => g.title === "Clean Streak");
@@ -89,35 +102,40 @@ class DayBoundaryManager {
       const tz = profile?.timezone || 'Asia/Karachi';
       const currentTodayDate = getTodayDateString(tz);
 
+      let lastFinalizedDate = profile?.lastActiveDate;
+      if (!lastFinalizedDate) {
+        lastFinalizedDate = getTodayDateString(tz, -1);
+        if (profile) {
+          await db.userProfile.update(1, { lastActiveDate: lastFinalizedDate });
+        }
+      }
+
       if (this.activeTodayDate === null) {
-        // Initial startup registration
+        // App Startup: Catch up any offline gap days between lastFinalizedDate and currentTodayDate
         this.activeTodayDate = currentTodayDate;
         await ensureRoutinesForDate(currentTodayDate);
+
+        if (lastFinalizedDate < currentTodayDate) {
+          await this.finalizeCleanStreak(lastFinalizedDate, currentTodayDate);
+        }
       } else if (this.activeTodayDate !== currentTodayDate) {
         console.log(`[DayBoundaryManager] Midnight Day Boundary Shift Detected: ${this.activeTodayDate} -> ${currentTodayDate} (Timezone: ${tz})`);
 
         const previousDate = this.activeTodayDate;
         this.activeTodayDate = currentTodayDate;
 
-        // 1. Finalize clean streak for completed previous day(s)
-        await this.finalizeCleanStreak(previousDate, currentTodayDate);
-
-        // 2. Ensure routines exist for the new date
+        const startFrom = lastFinalizedDate < previousDate ? lastFinalizedDate : getTodayDateString(tz, -2);
+        await this.finalizeCleanStreak(startFrom, currentTodayDate);
         await ensureRoutinesForDate(currentTodayDate);
 
-        // 3. If user was viewing yesterday's "today", seamlessly transition UI to new date
         const store = useAppStore.getState();
         if (store.selectedDate === previousDate) {
           store.setSelectedDate(currentTodayDate);
         }
 
-        // 4. Recalibrate Phase 6 Notification Engine for new solar day
         await notificationSchedulingEngine.recalibrateSolarSchedules(currentTodayDate);
-
-        // 5. Trigger Phase 7 Dynamic Daily Planner for new day
         await dynamicPlannerManager.generateDailyPlan(currentTodayDate, 'midnight_recalibration');
 
-        // 6. Emit DAY_CHANGED Event to Event Bus
         await eventBus.publish(StandardEvents.DAY_CHANGED, {
           previousDate,
           currentDate: currentTodayDate,

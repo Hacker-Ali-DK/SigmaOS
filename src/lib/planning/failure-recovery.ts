@@ -28,9 +28,11 @@ class FailureRecoveryManager {
     if (lastValidRev) {
       const existingPlan = await db.dailyPlans.where({ date: dateStr }).first();
       if (existingPlan) {
+        const restoredTimeBlocks = lastValidRev.timeBlocks ? [...lastValidRev.timeBlocks] : existingPlan.timeBlocks;
         restoredPlan = {
           ...existingPlan,
           revision: lastValidRev,
+          timeBlocks: restoredTimeBlocks,
           status: 'executing'
         };
         // Restore active plan state in db.dailyPlans
