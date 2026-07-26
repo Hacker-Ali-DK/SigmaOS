@@ -79,29 +79,12 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
         });
       }
     } else if (task.taskName === 'Water') {
-      await db.water.put({
-        date: selectedDate,
-        amountLiters: nextCompleted ? 2.4 : 0
-      });
-    } else if (task.taskName === 'Workout') {
-      if (nextCompleted) {
-        await db.workouts.put({ date: selectedDate, type: 'Workout', durationMinutes: 30, intensity: 'medium' });
-      } else {
-        await db.workouts.where({ date: selectedDate }).delete();
-      }
-    } else if (task.taskName === 'Sleep') {
-      if (nextCompleted) {
-        await db.sleep.put({
+      const currentLog = await db.water.get(selectedDate);
+      if (nextCompleted && (!currentLog || currentLog.amountLiters < 2.4)) {
+        await db.water.put({
           date: selectedDate,
-          totalHours: 7.5,
-          deepHours: 2.1,
-          lightHours: 4.2,
-          remHours: 1.2,
-          awakeHours: 0.3,
-          qualityScore: 82
+          amountLiters: 2.4
         });
-      } else {
-        await db.sleep.where({ date: selectedDate }).delete();
       }
     }
   };

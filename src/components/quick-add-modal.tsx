@@ -56,6 +56,7 @@ export default function QuickAddModal() {
   // Inputs
   const [waterAmount, setWaterAmount] = useState('0.25');
   const [urgeStrength, setUrgeStrength] = useState<'low' | 'medium' | 'high'>('low');
+  const [urgeOutcome, setUrgeOutcome] = useState<'resisted' | 'relapsed'>('resisted');
   const [urgeNotes, setUrgeNotes] = useState('');
   const [urgeTriggers, setUrgeTriggers] = useState<string[]>([]);
   const [sleepBedtime, setSleepBedtime] = useState('22:30');
@@ -76,6 +77,7 @@ export default function QuickAddModal() {
       setMealName('');
       setUrgeNotes('');
       setUrgeTriggers([]);
+      setUrgeOutcome('resisted');
       setSleepBedtime('22:30');
       setSleepWakeup('06:30');
       setSleepQualityRating('4');
@@ -98,12 +100,18 @@ export default function QuickAddModal() {
   };
 
   const logUrge = async () => {
+    const isResisted = urgeOutcome === 'resisted';
     await db.dopamineUrges.add({
       timestamp: Date.now(),
       strength: urgeStrength,
       triggers: urgeTriggers,
-      notes: urgeNotes.trim() || undefined
+      notes: urgeNotes.trim() || undefined,
+      resisted: isResisted
     });
+
+    if (!isResisted) {
+      await db.userProfile.update(1, { cleanStreak: 0 });
+    }
     setShowAddModal(false);
   };
 
@@ -350,6 +358,38 @@ export default function QuickAddModal() {
               </div>
 
               <div>
+                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Outcome</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUrgeOutcome('resisted')}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
+                      urgeOutcome === 'resisted'
+                        ? "bg-[#02C39A] border-[#02C39A] text-white shadow-lg shadow-emerald-500/10"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                    )}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Resisted Urge
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUrgeOutcome('relapsed')}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
+                      urgeOutcome === 'relapsed'
+                        ? "bg-[#E63946] border-[#E63946] text-white shadow-lg shadow-red-500/10"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                    )}
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Relapse Occurred
+                  </button>
+                </div>
+              </div>
+
+              <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Notes (Optional)</label>
                 <textarea
                   value={urgeNotes}
@@ -361,9 +401,14 @@ export default function QuickAddModal() {
 
               <button 
                 onClick={logUrge}
-                className="w-full py-4 bg-[#E63946] hover:bg-[#E63946]/95 active:scale-98 text-white rounded-xl font-semibold shadow-lg shadow-red-500/20 transition-all cursor-pointer"
+                className={cn(
+                  "w-full py-4 active:scale-98 text-white rounded-xl font-semibold shadow-lg transition-all cursor-pointer",
+                  urgeOutcome === 'resisted'
+                    ? "bg-[#02C39A] hover:bg-[#02C39A]/95 shadow-emerald-500/20"
+                    : "bg-[#E63946] hover:bg-[#E63946]/95 shadow-red-500/20"
+                )}
               >
-                Log Urge Logged
+                {urgeOutcome === 'resisted' ? 'Log Resisted Urge' : 'Log Relapse'}
               </button>
             </div>
           )}

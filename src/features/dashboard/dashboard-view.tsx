@@ -134,29 +134,12 @@ export default function DashboardView({
         quranMinutes: nextCompleted ? 15 : 0
       });
     } else if (task.taskName === 'Water') {
-      await db.water.put({
-        date: selectedDate,
-        amountLiters: nextCompleted ? 2.4 : 0
-      });
-    } else if (task.taskName === 'Workout') {
-      if (nextCompleted) {
-        await db.workouts.add({ date: selectedDate, type: 'Workout', durationMinutes: 30, intensity: 'medium' });
-      } else {
-        await db.workouts.where({ date: selectedDate }).delete();
-      }
-    } else if (task.taskName === 'Sleep') {
-      if (nextCompleted) {
-        await db.sleep.put({
+      const currentLog = await db.water.get(selectedDate);
+      if (nextCompleted && (!currentLog || currentLog.amountLiters < 2.4)) {
+        await db.water.put({
           date: selectedDate,
-          totalHours: 7.5,
-          bedtime: `${selectedDate}T23:00`,
-          waketime: `${selectedDate}T06:30`,
-          qualityRating: 4.0,
-          qualityScore: 80,
-          source: 'manual'
+          amountLiters: 2.4
         });
-      } else {
-        await db.sleep.where({ date: selectedDate }).delete();
       }
     }
   };

@@ -17,6 +17,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   // Live queries
+  const profile = useLiveQuery(() => db.userProfile.get(1));
   const waterLog = useLiveQuery(() => db.water.get(selectedDate));
   const sleepLog = useLiveQuery(() => db.sleep.get(selectedDate));
   const prayerLog = useLiveQuery(() => db.prayers.get(selectedDate));
@@ -27,16 +28,18 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
   const waterAmt = waterLog?.amountLiters || 0;
   const quranMins = prayerLog?.quranMinutes || 0;
   const workoutMins = workoutLogs?.reduce((sum, w) => sum + w.durationMinutes, 0) || 0;
+  const cleanStreak = profile?.cleanStreak ?? 0;
   
   // Custom study log aggregator from routines (e.g. "Study Session 1" has 2.5 Hrs)
   const studyHours = routineLogs
     ?.filter(r => r.completed && r.taskName.toLowerCase().includes('study'))
     .reduce((sum, r) => {
-      const match = r.timeLabel.match(/(\d+(\.\d+)?)\s*Hrs/i);
-      return sum + (match ? parseFloat(match[1]) : 3.2); // default mock 3.2 if completed
+      const label = (r && typeof r.timeLabel === 'string') ? r.timeLabel : '';
+      const match = label.match(/(\d+(\.\d+)?)\s*Hrs/i);
+      return sum + (match ? parseFloat(match[1]) : 2.5);
     }, 0) || 0;
   
-  const walkSteps = routineLogs?.some(r => r.taskName === 'Walk' && r.completed) ? 8210 : 0;
+  const walkSteps = routineLogs?.some(r => r.taskName === 'Walk' && r.completed) ? 10000 : 0;
 
   const handleUpdateWater = async (increment: number) => {
     const nextAmt = Math.max(0, Number((waterAmt + increment).toFixed(2)));
@@ -80,8 +83,6 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
       } else {
         await db.workouts.add({ date: selectedDate, type: 'Workout', durationMinutes: nextMins, intensity: 'medium' });
       }
-    } else {
-      await db.workouts.where({ date: selectedDate }).delete();
     }
 
     const workoutRoutine = routineLogs?.find(r => r.taskName === 'Workout');
@@ -120,7 +121,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     {
       id: 'dopamine',
       title: 'No Porn',
-      current: 45,
+      current: cleanStreak,
       target: 90,
       unit: 'Days',
       color: 'bg-orange-500',
@@ -146,7 +147,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     {
       id: 'study',
       title: 'Study',
-      current: studyHours || 3.2, // fallback to mock if routines empty
+      current: studyHours,
       target: 4.0,
       unit: 'hrs',
       color: 'bg-purple-500',
@@ -157,7 +158,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     {
       id: 'walk',
       title: 'Walk',
-      current: walkSteps || 8210, // fallback to mock if routines empty
+      current: walkSteps,
       target: 10000,
       unit: 'steps',
       color: 'bg-amber-500',
