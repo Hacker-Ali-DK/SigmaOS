@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Target, Plus, Check, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Target, Plus, Minus, Check, Trash2 } from 'lucide-react';
 import { db, type Goal } from '@/lib/db';
 import { cn } from '@/lib/utils';
 
@@ -35,8 +35,8 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
 
     await db.goals.add({
       title: title.trim(),
-      targetValue: parseFloat(targetValue) || 10,
-      currentValue: parseFloat(currentValue) || 0,
+      targetValue: Math.max(1, parseFloat(targetValue) || 10),
+      currentValue: Math.max(0, parseFloat(currentValue) || 0),
       unit: unit.trim() || '%',
       category,
       completed: false,
@@ -50,14 +50,31 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
     setShowAddForm(false);
   };
 
-  const handleIncrement = async (goal: Goal) => {
-    if (!goal.id) return;
-    const nextVal = Math.min(goal.targetValue, goal.currentValue + 1);
-    const isComp = nextVal >= goal.targetValue;
-    await db.goals.update(goal.id, { 
-      currentValue: nextVal,
-      completed: isComp
+  // Atomic Dexie transaction for rapid tap concurrency safety
+  const adjustGoalValue = async (id: number, delta: number) => {
+    if (!id) return;
+    await db.transaction('rw', db.goals, async () => {
+      const latest = await db.goals.get(id);
+      if (!latest) return;
+
+      const minVal = 0;
+      const maxVal = Math.max(latest.targetValue, 0);
+      const nextVal = Math.max(minVal, Math.min(maxVal, latest.currentValue + delta));
+      const isComp = nextVal >= latest.targetValue && latest.targetValue > 0;
+
+      await db.goals.update(id, { 
+        currentValue: nextVal,
+        completed: isComp
+      });
     });
+  };
+
+  const handleIncrement = (id?: number) => {
+    if (id) adjustGoalValue(id, 1);
+  };
+
+  const handleDecrement = (id?: number) => {
+    if (id) adjustGoalValue(id, -1);
   };
 
   const handleComplete = async (id?: number) => {
@@ -90,6 +107,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
           {onBack && (
             <button 
               onClick={onBack}
+              aria-label="Back"
               className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -101,6 +119,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
         </div>
         <button 
           onClick={() => setShowAddForm(prev => !prev)}
+          aria-label="Add new goal"
           className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-[#3A86FF] hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -134,7 +153,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
             return (
               <div 
                 key={g.id}
-                className="glass-panel rounded-2xl p-4 flex flex-col gap-3 bg-gradient-to-br from-[#0B0F19] to-[#111625] border border-slate-900/60 group relative overflow-hidden"
+                className="glass-panel rounded-2xl p-4 flex flex-col gap-3 bg-gradient-to-br from-[#0B0F19] to-[#111625] border border-slate-900/60 relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -144,7 +163,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                     <div className="flex flex-col">
                       <span className="text-xs font-extrabold text-slate-100">{g.title}</span>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                        {g.currentValue} / {g.targetValue} {g.unit}
+                        {g.category} • {g.unit}
                       </span>
                     </div>
                   </div>
@@ -161,30 +180,83 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                   />
                 </div>
 
-                {/* Actions button */}
+                {/* Explicit Reversible Target Adjustment Controls: [ - ] CURRENT VALUE [ + ] */}
                 {activeTab === 'active' && (
-                  <div className="flex items-center justify-end gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleDelete(g.id)}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleIncrement(g)}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-400 hover:text-[#3A86FF] hover:border-slate-800 cursor-pointer transition-colors flex items-center gap-1 text-[10px] font-bold"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Progress
-                    </button>
-                    <button
-                      onClick={() => handleComplete(g.id)}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-[#02C39A]/20 text-[#02C39A] hover:bg-[#02C39A]/10 cursor-pointer transition-colors"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                    </button>
+                  <div className="flex items-center justify-between bg-slate-950/60 border border-slate-900/80 p-2 rounded-xl mt-1">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Progress:</span>
+                      <span className="font-extrabold text-slate-100 text-xs">
+                        {g.currentValue} / {g.targetValue} {g.unit}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5" role="group" aria-label={`Adjust progress for ${g.title}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleDecrement(g.id)}
+                        disabled={g.currentValue <= 0}
+                        aria-label={`Decrease ${g.title} goal value`}
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer select-none",
+                          g.currentValue <= 0
+                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40"
+                            : "bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 hover:border-slate-700 active:scale-95"
+                        )}
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+
+                      <span 
+                        aria-label={`Current value ${g.currentValue}`}
+                        className="min-w-[2.25rem] text-center font-extrabold text-xs text-slate-200 select-none px-1"
+                      >
+                        {g.currentValue}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => handleIncrement(g.id)}
+                        disabled={g.currentValue >= g.targetValue}
+                        aria-label={`Increase ${g.title} goal value`}
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer select-none",
+                          g.currentValue >= g.targetValue
+                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40"
+                            : "bg-[#3A86FF]/10 border-[#3A86FF]/30 text-[#3A86FF] hover:bg-[#3A86FF]/20 hover:border-[#3A86FF]/50 active:scale-95"
+                        )}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 )}
+
+                {/* Card Action Toolbar */}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-900/40">
+                  <span className="text-[9px] text-slate-600 font-semibold">
+                    Added {new Date(g.createdAt || Date.now()).toLocaleDateString()}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleDelete(g.id)}
+                      aria-label={`Delete ${g.title} goal`}
+                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors flex items-center gap-1 text-[10px] font-semibold"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                    {activeTab === 'active' && (
+                      <button
+                        onClick={() => handleComplete(g.id)}
+                        aria-label={`Mark ${g.title} goal complete`}
+                        className="p-1.5 rounded-lg bg-[#02C39A]/10 border border-[#02C39A]/30 text-[#02C39A] hover:bg-[#02C39A]/20 cursor-pointer transition-colors flex items-center gap-1 text-[10px] font-bold"
+                      >
+                        <Check className="w-3 h-3" />
+                        Complete
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })

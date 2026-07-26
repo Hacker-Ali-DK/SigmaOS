@@ -1,4 +1,4 @@
-// Recovery+ System-Wide Audit Fix Verification Suite (DEF-01 through DEF-14)
+// Recovery+ System-Wide Audit Verification Suite (DEF-01 through DEF-14 + Goals UX Fix)
 const fs = require('fs');
 const path = require('path');
 
@@ -183,7 +183,39 @@ function resolveProfileIshaPolicy(storedPolicy) {
   if (storedPolicy !== undefined && storedPolicy !== null) {
     return storedPolicy;
   }
-  return 'fajr'; // App-wide default fallback
+  return 'fajr';
+}
+
+// Goals Reversible [ - ] [ + ] Atomic Adjustment Simulator
+class GoalStoreSimulator {
+  constructor() {
+    this.goals = new Map();
+  }
+
+  addGoal(goal) {
+    const id = goal.id || Date.now();
+    const g = { ...goal, id };
+    this.goals.set(id, g);
+    return g;
+  }
+
+  async adjustGoalValue(id, delta) {
+    const latest = this.goals.get(id);
+    if (!latest) return null;
+
+    const minVal = 0;
+    const maxVal = Math.max(latest.targetValue, 0);
+    const nextVal = Math.max(minVal, Math.min(maxVal, latest.currentValue + delta));
+    const isComp = nextVal >= latest.targetValue && latest.targetValue > 0;
+
+    const updated = {
+      ...latest,
+      currentValue: nextVal,
+      completed: isComp
+    };
+    this.goals.set(id, updated);
+    return updated;
+  }
 }
 
 async function runAllAuditVerificationTests() {
@@ -323,7 +355,6 @@ async function runAllAuditVerificationTests() {
   const swPath = path.join(__dirname, '../../public/sw.js');
   const swContent = fs.readFileSync(swPath, 'utf8');
 
-  // Extract ASSETS_TO_CACHE array items
   const match = swContent.match(/ASSETS_TO_CACHE = \[\s*([\s\S]*?)\s*\];/);
   assert(Boolean(match), "ASSETS_TO_CACHE array defined in public/sw.js");
 
@@ -332,7 +363,7 @@ async function runAllAuditVerificationTests() {
     let allAssetsExist = true;
 
     for (const assetPath of rawAssets) {
-      if (assetPath === '/') continue; // Root document path served dynamically
+      if (assetPath === '/') continue;
       const localFilePath = path.join(__dirname, '../../public', assetPath);
       const exists = fs.existsSync(localFilePath);
       assert(exists, `Precached asset '${assetPath}' exists on disk at ${localFilePath}`);
@@ -356,22 +387,69 @@ async function runAllAuditVerificationTests() {
   const simRecovery = new RevisionRollbackSimulator("plan_2026-07-26_fail");
   const validR0Blocks = Array.from({ length: 12 }, (_, i) => ({ blockId: `block_${i}`, title: `Valid Task ${i}` }));
 
-  // Create R0 with 12 blocks
   simRecovery.createRevision("R0", null, validR0Blocks);
   assert(simRecovery.activePlan.timeBlocks.length === 12, "R0 plan initialized with 12 blocks");
 
-  // Simulate planner exception during adaptive reschedule
   const recoveredPlan = simRecovery.handleFailureRecovery("Solver Exception");
   assert(recoveredPlan.revision.revisionId === "R0", "Failure recovery restores last valid revision R0 pointer");
   assert(recoveredPlan.timeBlocks.length === 12, `Failure recovery restores exact 12 R0 timeBlocks snapshot (actual: ${recoveredPlan.timeBlocks.length})`);
 
-  // Legacy revision fallback test (without timeBlocks snapshot)
   const simLegacy = new RevisionRollbackSimulator("plan_legacy");
-  simLegacy.createRevision("R_legacy", null, null); // Legacy revision with null timeBlocks snapshot
+  simLegacy.createRevision("R_legacy", null, null);
   simLegacy.activePlan.timeBlocks = [{ blockId: 'b_curr', title: 'Current Block' }];
   const legacyRecovered = simLegacy.handleFailureRecovery("Solver Timeout Exception");
   assert(legacyRecovered.revision.revisionId === "R_legacy", "Legacy failure recovery restores revision pointer");
   assert(legacyRecovered.timeBlocks.length === 1, `Legacy failure recovery falls back gracefully without crashing (blocks: ${legacyRecovered.timeBlocks.length})`);
+
+  // ----------------------------------------------------
+  // TEST 11: GOALS REVERSIBLE [ - ] [ + ] & CONCURRENCY VERIFICATION
+  // ----------------------------------------------------
+  console.log("\n--- TEST 11: Goals Reversible [ - ] [ + ] & Concurrency Verification ---");
+  const goalStore = new GoalStoreSimulator();
+  const testGoal = goalStore.addGoal({ title: 'Read Books', targetValue: 10, currentValue: 3, unit: 'Books', category: 'health', completed: false });
+
+  // 11a. Increase by 1
+  let gState = await goalStore.adjustGoalValue(testGoal.id, 1);
+  assert(gState.currentValue === 4, `1. Increase goal by 1 (expected: 4, actual: ${gState.currentValue})`);
+
+  // 11b. Decrease by 1
+  gState = await goalStore.adjustGoalValue(testGoal.id, -1);
+  assert(gState.currentValue === 3, `2. Decrease goal by 1 (expected: 3, actual: ${gState.currentValue})`);
+
+  // 11c. Increase then immediately decrease
+  await goalStore.adjustGoalValue(testGoal.id, 1);
+  gState = await goalStore.adjustGoalValue(testGoal.id, -1);
+  assert(gState.currentValue === 3, `3. Increase then decrease returns to 3 (actual: ${gState.currentValue})`);
+
+  // 11d. Decrease at minimum boundary (0)
+  await goalStore.adjustGoalValue(testGoal.id, -10);
+  gState = await goalStore.adjustGoalValue(testGoal.id, -1);
+  assert(gState.currentValue === 0, `4. Decrease at minimum boundary clamps to 0 (actual: ${gState.currentValue})`);
+
+  // 11e. Increase at maximum boundary (targetValue = 10)
+  gState = await goalStore.adjustGoalValue(testGoal.id, 10);
+  assert(gState.currentValue === 10 && gState.completed === true, `Goal completed when currentValue reaches targetValue (10/10)`);
+  gState = await goalStore.adjustGoalValue(testGoal.id, 1);
+  assert(gState.currentValue === 10, `5. Increase at maximum boundary clamps to 10 (actual: ${gState.currentValue})`);
+
+  // 11f. Reversion from completion
+  gState = await goalStore.adjustGoalValue(testGoal.id, -1);
+  assert(gState.currentValue === 9 && gState.completed === false, `Decreasing below targetValue reverts completed to false (actual: 9, completed: false)`);
+
+  // 11g. Rapid 5 + taps concurrency safety
+  await goalStore.adjustGoalValue(testGoal.id, -9);
+  for (let i = 0; i < 5; i++) {
+    await goalStore.adjustGoalValue(testGoal.id, 1);
+  }
+  gState = goalStore.goals.get(testGoal.id);
+  assert(gState.currentValue === 5, `6. Five rapid + taps produce exactly +5 (expected: 5, actual: ${gState.currentValue})`);
+
+  // 11h. Rapid 5 - taps concurrency safety
+  for (let i = 0; i < 5; i++) {
+    await goalStore.adjustGoalValue(testGoal.id, -1);
+  }
+  gState = goalStore.goals.get(testGoal.id);
+  assert(gState.currentValue === 0, `7. Five rapid - taps produce exactly -5 down to 0 (expected: 0, actual: ${gState.currentValue})`);
 
   console.log("\n=================================================");
   console.log(`FINAL RESULTS: ${passed} PASSED, ${failed} FAILED`);
