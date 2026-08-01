@@ -14,7 +14,7 @@ export async function generatePredictions(selectedDate: string): Promise<Predict
 
   // 1. Recovery Score Prediction (Exponential smoothing)
   const currentScores = await calculateScoresForDate(selectedDate);
-  const recoveryScorePred = Math.min(100, Math.max(10, Math.round(currentScores.overallAlignment * 0.95 + 3)));
+  const recoveryScorePred = Math.min(100, Math.max(0, Math.round(currentScores.overallAlignment * 0.95 + 3)));
 
   // 2. Energy Prediction Curve (24-hour circadian curve)
   const todaySleep = await db.sleep.get(selectedDate);

@@ -91,12 +91,27 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     }
   };
 
+  // Dynamic target resolution from scheduled routines for selected date
+  const quranRoutine = routineLogs?.find(r => r.taskName === "Qur'an");
+  const quranTargetMins = quranRoutine?.timeLabel
+    ? (quranRoutine.timeLabel.match(/(\d+)\s*min/i) ? parseInt(quranRoutine.timeLabel.match(/(\d+)\s*min/i)![1]) : 15)
+    : 15;
+
+  const studyRoutines = routineLogs?.filter(r => r.taskName.toLowerCase().includes('study')) || [];
+  const studyTargetHours = studyRoutines.length > 0
+    ? studyRoutines.reduce((sum, r) => {
+        const label = r.timeLabel || '';
+        const match = label.match(/(\d+(\.\d+)?)\s*Hrs/i);
+        return sum + (match ? parseFloat(match[1]) : 2.5);
+      }, 0)
+    : 2.5;
+
   const habitsList = [
     {
       id: 'water',
       title: 'Drink Water',
       current: waterAmt,
-      target: 3.0,
+      target: profile?.dailyWaterTarget || 3.0,
       unit: 'Liters',
       color: 'bg-cyan-500',
       textColor: 'text-cyan-400',
@@ -135,7 +150,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
       id: 'quran',
       title: "Read Qur'an",
       current: quranMins,
-      target: 30,
+      target: quranTargetMins,
       unit: 'min',
       color: 'bg-emerald-500',
       textColor: 'text-emerald-400',
@@ -148,7 +163,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
       id: 'study',
       title: 'Study',
       current: studyHours,
-      target: 4.0,
+      target: studyTargetHours,
       unit: 'hrs',
       color: 'bg-purple-500',
       textColor: 'text-purple-400',

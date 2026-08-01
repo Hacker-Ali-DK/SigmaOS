@@ -91,7 +91,8 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
 
   // Format date display (e.g. Friday, 17 May 2024)
   const formatDateLabel = (dateStr: string) => {
-    const d = new Date(dateStr);
+    const [y, m, day] = dateStr.split('-').map(Number);
+    const d = new Date(y, m - 1, day);
     return d.toLocaleDateString('en-US', {
       weekday: 'long',
       day: 'numeric',

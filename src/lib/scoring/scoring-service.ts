@@ -147,6 +147,31 @@ export function formatMinsToDurationStr(mins: number): string {
   return m === 0 ? `±${h}h` : `±${h}h ${m}m`;
 }
 
+export function parseDurationFromTimeLabel(timeLabel?: string): { minutes: number; hours: number } | null {
+  if (!timeLabel || typeof timeLabel !== 'string') return null;
+  const str = timeLabel.trim();
+  
+  // Match hours: e.g. "2.5 Hrs", "1 Hr", "2 Hours", "2.5h"
+  const hrMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:hrs?|hours?|h)\b/i);
+  if (hrMatch) {
+    const hours = parseFloat(hrMatch[1]);
+    if (!isNaN(hours) && hours > 0) {
+      return { minutes: Math.round(hours * 60), hours };
+    }
+  }
+
+  // Match minutes: e.g. "15 min", "30 mins", "15m", "45 minutes"
+  const minMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:mins?|minutes?|m)\b/i);
+  if (minMatch) {
+    const minutes = parseFloat(minMatch[1]);
+    if (!isNaN(minutes) && minutes > 0) {
+      return { minutes: Math.round(minutes), hours: minutes / 60 };
+    }
+  }
+
+  return null;
+}
+
 export function calculateDailySleepScore(sleepLog: any, sleepTarget = 8.0): ScoreDetail {
   if (!sleepLog) {
     return {
@@ -210,7 +235,7 @@ export function calculateDailySleepScore(sleepLog: any, sleepTarget = 8.0): Scor
   }
 
   return {
-    score: Math.max(10, Math.min(finalScore, 100)),
+    score: Math.max(0, Math.min(finalScore, 100)),
     status: trackedCount === totalCount ? 'completed' : 'partial',
     trackedCount,
     totalCount,
@@ -292,7 +317,8 @@ export async function calculateWellnessScore(
   waterLog: any,
   workouts: any[],
   weightLog: any, // kept in signature for compatibility but ignored for score
-  journal: any
+  journal: any,
+  rawRoutines?: any[]
 ): Promise<ScoreDetail> {
   const factors: { weight: number; score: number; name: string }[] = [];
   const positives: string[] = [];
@@ -313,9 +339,10 @@ export async function calculateWellnessScore(
   if (meals && meals.length > 0) {
     const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
     const totalProtein = meals.reduce((sum, m) => sum + m.proteinGrams, 0);
+    const proteinTarget = profile?.dailyProteinTarget || 120;
 
     const calorieScore = Math.max(0, 100 - Math.abs((totalCalories - calorieTarget) / calorieTarget) * 100);
-    const proteinScore = Math.min((totalProtein / 120) * 100, 100);
+    const proteinScore = Math.min(100, (totalProtein / proteinTarget) * 100);
     const nutritionScore = (calorieScore + proteinScore) / 2;
 
     factors.push({ name: 'Nutrition', weight: 25, score: nutritionScore });
@@ -326,10 +353,10 @@ export async function calculateWellnessScore(
       negatives.push(`Calorie target deviation (${totalCalories} kcal vs target of ${calorieTarget} kcal)`);
     }
 
-    if (totalProtein >= 100) {
+    if (totalProtein >= proteinTarget) {
       positives.push(`Good protein intake (${totalProtein}g)`);
-    } else if (totalProtein < 80) {
-      negatives.push(`Low protein intake (${totalProtein}g vs target of 120g)`);
+    } else if (totalProtein < proteinTarget * 0.67) {
+      negatives.push(`Low protein intake (${totalProtein}g vs target of ${proteinTarget}g)`);
     }
   }
 
@@ -347,22 +374,36 @@ export async function calculateWellnessScore(
   }
 
   // 4. Workout (15%)
+  const routines = rawRoutines ? deduplicateRoutinesInput(rawRoutines) : [];
+  const workoutRoutine = routines.find(r => r.taskName.toLowerCase().includes('workout') || r.taskName.toLowerCase().includes('exercise'));
+  const parsedWorkoutDuration = parseDurationFromTimeLabel(workoutRoutine?.timeLabel);
+  const targetWorkoutMins = parsedWorkoutDuration ? parsedWorkoutDuration.minutes : 30;
+
   const workoutMins = workouts?.reduce((sum, w) => sum + w.durationMinutes, 0) || 0;
   if (workouts && workouts.length > 0) {
-    const workoutScore = Math.min((workoutMins / 30) * 100, 100);
+    const workoutScore = Math.min((workoutMins / targetWorkoutMins) * 100, 100);
     factors.push({ name: 'Physical Activity', weight: 15, score: workoutScore });
     
-    if (workoutMins >= 30) {
+    if (workoutMins >= targetWorkoutMins) {
       positives.push(`Workout completed (${workoutMins} mins)`);
     } else {
-      negatives.push(`Workout duration below target (${workoutMins} mins vs 30 mins)`);
+      negatives.push(`Workout duration below target (${workoutMins} mins vs ${targetWorkoutMins} mins)`);
+    }
+  } else if (workoutRoutine) {
+    const workoutScore = workoutRoutine.completed ? 100 : 0;
+    factors.push({ name: 'Physical Activity', weight: 15, score: workoutScore });
+
+    if (workoutRoutine.completed) {
+      positives.push(`Workout routine completed`);
+    } else {
+      negatives.push(`Workout routine not completed`);
     }
   }
 
   // 5. Mood (7.5%)
   if (journal && journal.mood) {
-    const moodMap = { great: 100, good: 80, neutral: 60, anxious: 40 };
-    const moodScore = moodMap[journal.mood as 'great'|'good'|'neutral'|'anxious'] || 60;
+    const moodMap = { great: 100, good: 100, neutral: 70, anxious: 40 };
+    const moodScore = moodMap[journal.mood as 'great'|'good'|'neutral'|'anxious'] || 70;
     factors.push({ name: 'Mood', weight: 7.5, score: moodScore });
 
     if (journal.mood === 'great' || journal.mood === 'good') {
@@ -375,7 +416,7 @@ export async function calculateWellnessScore(
   // 6. Energy (7.5%)
   if (journal && journal.energy) {
     const energyMap = { high: 100, medium: 75, low: 40 };
-    const energyScore = energyMap[journal.energy as 'high'|'medium'|'low'] || 60;
+    const energyScore = energyMap[journal.energy as 'high'|'medium'|'low'] || 75;
     factors.push({ name: 'Energy', weight: 7.5, score: energyScore });
 
     if (journal.energy === 'high') {
@@ -411,7 +452,7 @@ export async function calculateWellnessScore(
   }
 
   return {
-    score: Math.max(10, Math.min(finalScore, 100)),
+    score: Math.max(0, Math.min(finalScore, 100)),
     status: trackedCount >= 4 ? 'completed' : 'partial',
     trackedCount,
     totalCount,
@@ -435,9 +476,9 @@ export async function calculateDisciplineScore(
   const positives: string[] = [];
   const negatives: string[] = [];
 
-  // 1. Non-prayer Routines (40%)
+  // 1. Non-prayer, Non-Quran Routines (40%)
   const nonPrayerRoutines = routines.filter(r => 
-    !['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', "qur'an"].includes(r.taskName.toLowerCase())
+    !['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', "qur'an", "quran"].includes(r.taskName.toLowerCase())
   );
   if (nonPrayerRoutines.length > 0) {
     const completed = nonPrayerRoutines.filter(r => r.completed).length;
@@ -452,28 +493,33 @@ export async function calculateDisciplineScore(
   }
 
   // 2. Study / Learning (20%)
-  // Find study/learning tasks in completed routines
-  const completedStudyRoutines = routines.filter(r => 
-    r.completed && (r.taskName.toLowerCase().includes('study') || r.taskName.toLowerCase().includes('programming') || r.taskName.toLowerCase().includes('learn'))
-  );
-  const studyHours = completedStudyRoutines.reduce((sum, r) => {
-    const label = (r && typeof r.timeLabel === 'string') ? r.timeLabel : '';
-    const match = label.match(/(\d+(\.\d+)?)\s*Hrs/i);
-    return sum + (match ? parseFloat(match[1]) : 2.5); // default 2.5 hrs if checked
-  }, 0);
-
-  const hasStudyExpectation = routines.some(r => 
+  const studyRoutines = routines.filter(r => 
     r.taskName.toLowerCase().includes('study') || r.taskName.toLowerCase().includes('programming') || r.taskName.toLowerCase().includes('learn')
   );
 
-  if (hasStudyExpectation || studyHours > 0) {
-    const studyScore = Math.min((studyHours / 4.0) * 100, 100);
+  if (studyRoutines.length > 0) {
+    let requiredHoursSum = 0;
+    let fulfilledHoursSum = 0;
+
+    for (const r of studyRoutines) {
+      const parsed = parseDurationFromTimeLabel(r.timeLabel);
+      const reqH = parsed ? parsed.hours : 2.5;
+      requiredHoursSum += reqH;
+      if (r.completed) {
+        fulfilledHoursSum += reqH;
+      }
+    }
+
+    const studyScore = requiredHoursSum > 0 
+      ? Math.min(100, Math.max(0, Math.round((fulfilledHoursSum / requiredHoursSum) * 100))) 
+      : 0;
+
     factors.push({ name: 'Study/Learning', weight: 20, score: studyScore });
 
-    if (studyHours >= 3.0) {
-      positives.push(`Productive learning session (${studyHours} hrs)`);
-    } else if (studyHours > 0) {
-      negatives.push(`Short study duration (${studyHours} hrs vs target of 4.0 hrs)`);
+    if (studyScore >= 80) {
+      positives.push(`Productive learning session (${fulfilledHoursSum.toFixed(1)} hrs)`);
+    } else if (fulfilledHoursSum > 0) {
+      negatives.push(`Short study duration (${fulfilledHoursSum.toFixed(1)} hrs vs target of ${requiredHoursSum.toFixed(1)} hrs)`);
     } else {
       negatives.push("No study sessions completed today");
     }
@@ -509,11 +555,15 @@ export async function calculateDisciplineScore(
     positives.push(`Logged productive screen time (${journal.productiveScreenHours} hrs)`);
   }
 
-  // 5. Goal Progress (10%)
-  const activeNonDeenGoals = activeGoals?.filter(g => g.category !== 'deen') || [];
-  if (activeNonDeenGoals.length > 0) {
+  // 5. Daily Discipline Commitments (10%)
+  // Filter for active non-Deen goals that explicitly represent a concrete daily commitment due today
+  const dailyDisciplineCommitments = activeGoals?.filter(g => 
+    g.category !== 'deen' && (g.isDailyCommitment === true || g.unit === 'daily')
+  ) || [];
+
+  if (dailyDisciplineCommitments.length > 0) {
     let sumProgress = 0;
-    for (const g of activeNonDeenGoals) {
+    for (const g of dailyDisciplineCommitments) {
       let p = 0;
       if (g.targetValue === g.currentValue) p = 100;
       else if (g.targetValue > 0) {
@@ -521,11 +571,11 @@ export async function calculateDisciplineScore(
       }
       sumProgress += p;
     }
-    const goalScore = sumProgress / activeNonDeenGoals.length;
+    const goalScore = sumProgress / dailyDisciplineCommitments.length;
     factors.push({ name: 'Goal Progress', weight: 10, score: goalScore });
 
     if (goalScore >= 50) {
-      positives.push(`On track with active goals (${Math.round(goalScore)}% average progress)`);
+      positives.push(`On track with daily commitments (${Math.round(goalScore)}% average progress)`);
     } else {
       negatives.push(`Slow goal progress (${Math.round(goalScore)}% overall progress)`);
     }
@@ -557,7 +607,7 @@ export async function calculateDisciplineScore(
   }
 
   return {
-    score: Math.max(10, Math.min(finalScore, 100)),
+    score: Math.max(0, Math.min(finalScore, 100)),
     status: trackedCount >= 3 ? 'completed' : 'partial',
     trackedCount,
     totalCount,
@@ -631,33 +681,39 @@ export async function calculateDeenScore(
   }
 
   // 2. Qur'an Recitation (25%)
-  const quranRoutine = routines?.find(r => r.taskName === "Qur'an");
-  let quranMinutes: number | undefined = undefined;
+  const quranRoutine = routines?.find(r => r.taskName.toLowerCase().includes("qur'an") || r.taskName.toLowerCase().includes("quran"));
+  const parsedDuration = parseDurationFromTimeLabel(quranRoutine?.timeLabel);
+  const requiredQuranMins = parsedDuration ? parsedDuration.minutes : 30;
+  let actualQuranMins: number | undefined = undefined;
 
   if (prayers && prayers.quranMinutes !== undefined && prayers.quranMinutes !== null) {
-    quranMinutes = prayers.quranMinutes;
+    actualQuranMins = prayers.quranMinutes;
   } else if (quranRoutine) {
-    quranMinutes = quranRoutine.completed ? 15 : 0;
+    actualQuranMins = quranRoutine.completed ? requiredQuranMins : 0;
   }
 
-  if (quranMinutes !== undefined && (prayers?.quranMinutes !== undefined || quranRoutine !== undefined)) {
-    const quranScore = Math.min(100, Math.round((quranMinutes / 30) * 100));
+  if (actualQuranMins !== undefined) {
+    const quranScore = Math.min(100, Math.max(0, Math.round((actualQuranMins / requiredQuranMins) * 100)));
     factors.push({ name: 'Qur\'an reading', weight: 25, score: quranScore });
 
-    if (quranMinutes >= 15) {
-      positives.push(`Recited Qur'an for ${quranMinutes} mins`);
-    } else if (quranMinutes > 0) {
-      negatives.push(`Recited Qur'an for ${quranMinutes} mins (target: 30 mins)`);
+    if (actualQuranMins >= requiredQuranMins) {
+      positives.push(`Recited Qur'an for ${actualQuranMins} mins`);
+    } else if (actualQuranMins > 0) {
+      negatives.push(`Recited Qur'an for ${actualQuranMins} mins (target: ${requiredQuranMins} mins)`);
     } else {
       negatives.push("No Qur'an recitation logged yet today");
     }
   }
 
-  // 3. Islamic Goals (15%)
-  const activeDeenGoals = activeGoals?.filter(g => g.category === 'deen') || [];
-  if (activeDeenGoals.length > 0) {
+  // 3. Daily Deen Commitments (15%)
+  // Filter active goals for concrete daily Deen commitments due today (excluding cumulative goals like 30 days Fajr)
+  const dailyDeenCommitments = activeGoals?.filter(g => 
+    g.category === 'deen' && (g.isDailyCommitment === true || g.unit === 'daily')
+  ) || [];
+
+  if (dailyDeenCommitments.length > 0) {
     let sumProgress = 0;
-    for (const g of activeDeenGoals) {
+    for (const g of dailyDeenCommitments) {
       let p = 0;
       if (g.targetValue === g.currentValue) p = 100;
       else if (g.targetValue > 0) {
@@ -665,13 +721,13 @@ export async function calculateDeenScore(
       }
       sumProgress += p;
     }
-    const deenGoalScore = Math.round(sumProgress / activeDeenGoals.length);
+    const deenGoalScore = Math.round(sumProgress / dailyDeenCommitments.length);
     factors.push({ name: 'Islamic Goals', weight: 15, score: deenGoalScore });
 
     if (deenGoalScore >= 50) {
-      positives.push("Steady progress on Islamic goals");
+      positives.push("Steady progress on daily Islamic commitments");
     } else {
-      negatives.push("Ongoing progress on Islamic goals");
+      negatives.push("Ongoing progress on daily Islamic commitments");
     }
   }
 
@@ -701,7 +757,7 @@ export async function calculateDeenScore(
   }
 
   return {
-    score: Math.max(10, Math.min(finalScore, 100)),
+    score: Math.max(0, Math.min(finalScore, 100)),
     status: trackedCount === totalCount ? 'completed' : 'partial',
     trackedCount,
     totalCount,
@@ -724,20 +780,20 @@ export async function calculateScoresForDate(dateStr: string): Promise<DailyScor
   const allGoals = await db.goals.toArray();
   const filteredActiveGoals = allGoals.filter(g => !g.completed);
 
-  const wellness = await calculateWellnessScore(dateStr, profile, sleepLog, meals, waterLog, workouts, weightLog, journal);
+  const wellness = await calculateWellnessScore(dateStr, profile, sleepLog, meals, waterLog, workouts, weightLog, journal, routines);
   const discipline = await calculateDisciplineScore(dateStr, routines, journal, filteredActiveGoals);
   const deen = await calculateDeenScore(dateStr, prayers, routines, filteredActiveGoals);
   const selfControl = await calculateSelfControlForDate(dateStr);
 
-  // Overall Alignment is the average of the scores that are NOT insufficient
+  // Overall Alignment is the average of active scores that are tracked / not insufficient
   const activeScores: number[] = [];
-  if (wellness.status !== 'insufficient') activeScores.push(wellness.score);
-  if (discipline.status !== 'insufficient') activeScores.push(discipline.score);
-  if (deen.status !== 'insufficient') activeScores.push(deen.score);
+  if (wellness.status !== 'insufficient' && (wellness.status as string) !== 'untracked') activeScores.push(wellness.score);
+  if (discipline.status !== 'insufficient' && (discipline.status as string) !== 'untracked') activeScores.push(discipline.score);
+  if (deen.status !== 'insufficient' && (deen.status as string) !== 'untracked') activeScores.push(deen.score);
 
   const overallAlignment = activeScores.length > 0 
     ? Math.round(activeScores.reduce((sum, s) => sum + s, 0) / activeScores.length)
-    : 60; // neutral fallback
+    : 60; // neutral fallback when no category is tracked
 
   return {
     wellness,
@@ -829,7 +885,7 @@ export async function calculateLongTermConsistency(endDateStr: string, daysLimit
     const prayer = prayerMap.get(dateStr);
     const rts = routinesGrouped.get(dateStr) || [];
 
-    const wellness = await calculateWellnessScore(dateStr, profile, sleep, meals, water, wrkouts, weight, jrnl);
+    const wellness = await calculateWellnessScore(dateStr, profile, sleep, meals, water, wrkouts, weight, jrnl, rts);
     const discipline = await calculateDisciplineScore(dateStr, rts, jrnl, activeGoals);
     const deen = await calculateDeenScore(dateStr, prayer, rts, activeGoals);
 
@@ -937,7 +993,7 @@ export async function calculateHistoricalScoresForRange(
     const prayer = prayerMap.get(dateStr);
     const rts = routinesGrouped.get(dateStr) || [];
 
-    const wellness = await calculateWellnessScore(dateStr, profile, sleep, meals, water, wrkouts, weight, jrnl);
+    const wellness = await calculateWellnessScore(dateStr, profile, sleep, meals, water, wrkouts, weight, jrnl, rts);
     const discipline = await calculateDisciplineScore(dateStr, rts, jrnl, activeGoals);
     const deen = await calculateDeenScore(dateStr, prayer, rts, activeGoals);
 

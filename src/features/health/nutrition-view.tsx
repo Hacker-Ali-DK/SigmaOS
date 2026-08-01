@@ -15,6 +15,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
   const { selectedDate } = useAppStore();
 
   // Queries
+  const profile = useLiveQuery(() => db.userProfile.get(1));
   const meals = useLiveQuery(() => 
     db.meals.where({ date: selectedDate }).toArray()
   );
@@ -34,9 +35,9 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
   const totalProtein = meals?.reduce((sum, m) => sum + m.proteinGrams, 0) || 0;
   const waterAmt = waterLog?.amountLiters || 0;
 
-  const calTarget = 2500;
+  const calTarget = profile?.dailyCalorieTarget || 2500;
   const protTarget = 120;
-  const waterTarget = 3.0;
+  const waterTarget = profile?.dailyWaterTarget || 3.0;
 
   const handleAddMeal = async (e: React.FormEvent) => {
     e.preventDefault();

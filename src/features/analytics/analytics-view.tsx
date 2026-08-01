@@ -210,7 +210,7 @@ export default function AnalyticsView() {
                   <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
                     <XAxis dataKey="name" stroke="#64748B" tickLine={false} />
-                    <YAxis stroke="#64748B" domain={[10, 100]} tickLine={false} />
+                    <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
                     />

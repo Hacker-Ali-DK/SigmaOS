@@ -9,7 +9,7 @@ export async function explainScoreChange(selectedDate: string): Promise<Explanat
   const currentOverall = scores.overallAlignment;
 
   // Compare against arbitrary yesterday baseline (+5 delta example)
-  const yesterdayScore = Math.max(10, currentOverall - 4);
+  const yesterdayScore = Math.max(0, currentOverall - 4);
   const netDelta = Math.round(currentOverall - yesterdayScore);
 
   const attributions: FeatureAttribution[] = [

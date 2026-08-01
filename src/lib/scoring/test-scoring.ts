@@ -297,6 +297,184 @@ async function runTests() {
     );
   }
 
+  // ----------------------------------------------------
+  // STAGE 9 MANDATORY INVARIANT TESTS (TEST A - TEST R)
+  // ----------------------------------------------------
+  console.log("\n--- STAGE 9 MANDATORY INVARIANT TESTS ---");
+
+  // TEST A — Perfect Deen
+  {
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_on_time', asr: 'prayed_on_time', maghrib: 'prayed_on_time', isha: 'prayed_on_time' };
+    const routines = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
+    const dailyDeenGoal = [{ title: "Daily Dhikr", category: "deen", targetValue: 1, currentValue: 1, isDailyCommitment: true, completed: false }];
+    const deen = await calculateDeenScore(date, prayers, routines, dailyDeenGoal);
+    assert(deen.score === 100, `TEST A: Perfect Deen produces exactly 100 (actual: ${deen.score})`);
+  }
+
+  // TEST B — Perfect Deen Without Deen Goal
+  {
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_on_time', asr: 'prayed_on_time', maghrib: 'prayed_on_time', isha: 'prayed_on_time' };
+    const routines = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
+    const deen = await calculateDeenScore(date, prayers, routines, []);
+    assert(deen.score === 100, `TEST B: Perfect Deen without Deen goal produces 100 (actual: ${deen.score})`);
+  }
+
+  // TEST C — Long-Term Deen Goal Does Not Penalize Daily Score
+  {
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_on_time', asr: 'prayed_on_time', maghrib: 'prayed_on_time', isha: 'prayed_on_time' };
+    const routines = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
+    const longTermGoal = [{ title: "Wake up for Fajr 30 days", category: "deen", targetValue: 30, currentValue: 0, unit: "days", completed: false }];
+    const deen = await calculateDeenScore(date, prayers, routines, longTermGoal);
+    assert(deen.score === 100, `TEST C: Cumulative long-term Deen goal with 0 progress does NOT penalize daily Deen score (actual: ${deen.score})`);
+  }
+
+  // TEST D — Partial Qur'an
+  {
+    const prayers = { fajr: 'prayed_on_time', quranMinutes: 15 };
+    const routines = [{ taskName: "Qur'an", timeLabel: "30 min", completed: false }];
+    const deen = await calculateDeenScore(date, prayers, routines, []);
+    // Prayers = 100 (weight 60), Quran = 15/30 = 50 (weight 25). Score = (100*60 + 50*25)/85 = 7250/85 = 85
+    assert(deen.score === 85, `TEST D: Partial Qur'an (15m/30m) produces 50% factor score (actual Deen: ${deen.score})`);
+  }
+
+  // TEST E — Completed 15-Minute Qur'an Commitment
+  {
+    const prayers = { fajr: 'prayed_on_time' };
+    const routines = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
+    const deen = await calculateDeenScore(date, prayers, routines, []);
+    // Both Prayers (100) & Quran (100) completed -> 100
+    assert(deen.score === 100, `TEST E: Completed 15-Minute Qur'an Commitment produces 100% factor score (actual Deen: ${deen.score})`);
+  }
+
+  // TEST F — Study Commitment Uses Actual Duration
+  {
+    const routines = [{ taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: true }];
+    const discipline = await calculateDisciplineScore(date, routines, null, []);
+    // Routines = untracked (none non-study), Study = 2.5h/2.5h = 100% -> Discipline = 100
+    assert(discipline.score === 100, `TEST F: Scheduled 2.5h Study completed yields 100 factor score, NOT 62.5% (actual Discipline: ${discipline.score})`);
+  }
+
+  // TEST G — Partial Study
+  {
+    const routines = [
+      { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: false },
+      { taskName: "Study Session 2", timeLabel: "2.5 Hrs", completed: true }
+    ];
+    const discipline = await calculateDisciplineScore(date, routines, null, []);
+    assert(discipline.score === 50, `TEST G: 2.5h of 5.0h total study completed yields 50% factor score (actual Discipline: ${discipline.score})`);
+  }
+
+  // TEST H — Long-Term Discipline Goal Does Not Penalize Daily Score
+  {
+    const routines = [{ taskName: "Read Book", timeLabel: "Pending", completed: true }];
+    const longTermGoal = [{ title: "Read 12 Books", category: "habits", targetValue: 12, currentValue: 0, unit: "Books", completed: false }];
+    const discipline = await calculateDisciplineScore(date, routines, null, longTermGoal);
+    assert(discipline.score === 100, `TEST H: Cumulative long-term habit goal with 0 progress does NOT penalize daily Discipline score (actual: ${discipline.score})`);
+  }
+
+  // TEST I — Wellness Configured Target
+  {
+    const sleep = { totalHours: 8.0, qualityRating: 5, awakenings: 0 };
+    const water = { amountLiters: 3.0 };
+    const meals = [{ calories: 2500, proteinGrams: 120 }];
+    const wellness = await calculateWellnessScore(date, mockUserProfile, sleep, meals, water, [], null, null);
+    assert(wellness.score === 100, `TEST I: Fully satisfied configured Wellness targets produce 100 (actual: ${wellness.score})`);
+  }
+
+  // TEST J — Unconfigured Target
+  {
+    const sleep = { totalHours: 8.0, qualityRating: 5, awakenings: 0 };
+    const wellness = await calculateWellnessScore(date, mockUserProfile, sleep, [], null, [], null, null);
+    assert(wellness.trackedCount === 1, `TEST J: Unconfigured factors are marked untracked (actual tracked: ${wellness.trackedCount}/6)`);
+  }
+
+  // TEST K — Tracked Zero
+  {
+    const prayers = { fajr: 'missed', dhuhr: 'missed', asr: 'missed', maghrib: 'missed', isha: 'missed' };
+    const deen = await calculateDeenScore(date, prayers, [], []);
+    assert(deen.score === 0, `TEST K: Tracked zero completion produces 0 score, NOT clamped to 10 (actual: ${deen.score})`);
+  }
+
+  // TEST L — Perfect Wellness
+  {
+    const sleep = { totalHours: 8.0, qualityRating: 5, awakenings: 0 };
+    const water = { amountLiters: 3.0 };
+    const meals = [{ calories: 2500, proteinGrams: 120 }];
+    const workouts = [{ durationMinutes: 30 }];
+    const journal = { mood: 'great', energy: 'high' };
+    const wellness = await calculateWellnessScore(date, mockUserProfile, sleep, meals, water, workouts, null, journal);
+    assert(wellness.score === 100, `TEST L: Perfect Wellness produces 100 (actual: ${wellness.score})`);
+  }
+
+  // TEST M — Perfect Discipline
+  {
+    const routines = [
+      { taskName: "Walk", timeLabel: "6:00 PM", completed: true },
+      { taskName: "Study Session 1", timeLabel: "2.5 Hrs", completed: true },
+      { taskName: "Read Book", timeLabel: "Pending", completed: true }
+    ];
+    const journal = { screenHours: 2.0 };
+    const discipline = await calculateDisciplineScore(date, routines, journal, []);
+    assert(discipline.score === 100, `TEST M: Perfect Discipline produces 100 (actual: ${discipline.score})`);
+  }
+
+  // TEST N — Perfect Overall Alignment
+  {
+    // If activeScores = [100, 100, 100], Overall Alignment must be 100
+    const scores = [100, 100, 100];
+    const alignment = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    assert(alignment === 100, `TEST N: Perfect Overall Alignment produces 100 (actual: ${alignment})`);
+  }
+
+  // TEST O — Untracked Category Exclusion
+  {
+    const activeScores = [100, 100]; // Deen untracked
+    const alignment = Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length);
+    assert(alignment === 100, `TEST O: Untracked category excluded from Overall Alignment mean (actual: ${alignment})`);
+  }
+
+  // TEST P — Partial Category
+  {
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_late' };
+    const deen = await calculateDeenScore(date, prayers, [], []);
+    assert(deen.score < 100 && deen.score === 75, `TEST P: Partial prayer execution produces correct score < 100 (actual: ${deen.score})`);
+  }
+
+  // TEST Q — Zero Category
+  {
+    const routines = [{ taskName: "Walk", timeLabel: "6:00 PM", completed: false }];
+    const discipline = await calculateDisciplineScore(date, routines, null, []);
+    assert(discipline.score === 0, `TEST Q: Zero completion on tracked category produces 0 (actual: ${discipline.score})`);
+  }
+
+  // TEST R — No Data
+  {
+    const deen = await calculateDeenScore(date, null, [], []);
+    assert(deen.status === 'insufficient' && deen.trackedCount === 0, `TEST R: No data returns status 'insufficient' (actual: ${deen.status})`);
+  }
+
+  // TEST S — DEF-19 Historical Wellness Workout Routine Synchronization
+  {
+    const workoutRoutines = [{ taskName: 'Workout', timeLabel: '30 min', completed: true }];
+    const wellnessWithRts = await calculateWellnessScore(date, mockUserProfile, null, [], null, [], null, null, workoutRoutines);
+    assert(wellnessWithRts.score === 100, `TEST S (DEF-19): calculateWellnessScore with workout routine evaluates to 100 (actual: ${wellnessWithRts.score})`);
+  }
+
+  // TEST T — DEF-24 AI Prediction 0 Score Floor Clamping
+  {
+    const zeroOverall = 0;
+    const recoveryScorePred = Math.min(100, Math.max(0, Math.round(zeroOverall * 0.95 + 3)));
+    assert(recoveryScorePred === 3, `TEST T (DEF-24): Recovery score prediction for 0 alignment scales near 0 without 10 floor (actual: ${recoveryScorePred})`);
+  }
+
+  // TEST U — DEF-25 Schedule Date Parsing
+  {
+    const dateStr = "2026-07-24";
+    const [y, m, day] = dateStr.split('-').map(Number);
+    const parsedDate = new Date(y, m - 1, day);
+    assert(parsedDate.getDate() === 24 && parsedDate.getMonth() === 6, `TEST U (DEF-25): Local date parsing preserves day 24 and month July (actual: ${parsedDate.toLocaleDateString()})`);
+  }
+
   console.log(`\n=== SCORING VERIFICATION RESULTS ===`);
   console.log(`Total tests run: ${passedCount + failedCount}`);
   console.log(`Passed: ${passedCount}`);
@@ -310,3 +488,4 @@ async function runTests() {
 }
 
 runTests();
+

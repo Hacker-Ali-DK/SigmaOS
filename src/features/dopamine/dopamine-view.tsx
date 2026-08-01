@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Shield, AlertTriangle, Calendar, Plus, ChevronDown, Check, Trash2 } from 'lucide-react';
 import { db, type DopamineUrge } from '@/lib/db';
+import { useAppStore } from '@/lib/store';
+import { getTimezoneOfDayBounds } from '@/lib/scoring/scoring-service';
 import { cn } from '@/lib/utils';
 
 interface DopamineViewProps {
@@ -11,6 +13,7 @@ interface DopamineViewProps {
 }
 
 export default function DopamineView({ onBack }: DopamineViewProps) {
+  const { selectedDate } = useAppStore();
   // Queries
   const profile = useLiveQuery(() => db.userProfile.get(1));
   const urges = useLiveQuery(() => 
@@ -71,18 +74,11 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
     });
   };
 
-  // Derive counts and metrics
-  const getStartAndEndOfToday = () => {
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
-    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-    return [start.getTime(), end.getTime()];
-  };
-
-  const [startToday, endToday] = getStartAndEndOfToday();
+  // Derive counts and metrics for selectedDate
+  const { startOfDay, endOfDay } = getTimezoneOfDayBounds(selectedDate, profile?.timezone);
 
   const dailyUrges = urges 
-    ? urges.filter(u => u.timestamp >= startToday && u.timestamp <= endToday)
+    ? urges.filter(u => u.timestamp >= startOfDay && u.timestamp <= endOfDay)
     : [];
 
   const urgesTodayCount = dailyUrges.length;

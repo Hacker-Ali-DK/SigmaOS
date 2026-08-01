@@ -409,8 +409,14 @@ export default function DashboardView({
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={cn("text-sm font-extrabold font-heading", sub.colorClass)}>{scoreVal}</span>
-                  <span className="text-[10px] text-slate-500 font-bold">/100</span>
+                  {status === 'insufficient' || status === 'untracked' ? (
+                    <span className="text-sm font-extrabold font-heading text-slate-500">N/A</span>
+                  ) : (
+                    <>
+                      <span className={cn("text-sm font-extrabold font-heading", sub.colorClass)}>{scoreVal}</span>
+                      <span className="text-[10px] text-slate-500 font-bold">/100</span>
+                    </>
+                  )}
                   <ChevronRight className={cn("w-3.5 h-3.5 text-slate-650 transition-transform duration-300", isExpanded && "transform rotate-90")} />
                 </div>
               </div>
