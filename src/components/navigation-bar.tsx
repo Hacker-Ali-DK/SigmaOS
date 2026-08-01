@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, BarChart2, MessageSquare, User, Plus } from 'lucide-react';
+import { Home, BarChart2, User, Plus } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,6 @@ export default function NavigationBar() {
     { id: 'home', label: 'Home', icon: Home, isSpecial: false },
     { id: 'progress', label: 'Progress', icon: BarChart2, isSpecial: false },
     { id: 'add', label: '', icon: Plus, isSpecial: true },
-    { id: 'coach', label: 'AI Coach', icon: MessageSquare, isSpecial: false },
     { id: 'profile', label: 'Profile', icon: User, isSpecial: false },
   ] as const;
 

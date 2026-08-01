@@ -12,7 +12,6 @@ import NutritionView from '@/features/health/nutrition-view';
 import SleepView from '@/features/health/sleep-view';
 import AnalyticsView from '@/features/analytics/analytics-view';
 import GoalsView from '@/features/goals/goals-view';
-import CoachView from '@/features/coach/coach-view';
 import ProfileView from '@/features/profile/profile-view';
 
 export default function AppShell() {
@@ -64,7 +63,6 @@ export default function AppShell() {
           </>
         )}
         {currentTab === 'progress' && <AnalyticsView />}
-        {currentTab === 'coach' && <CoachView />}
         {currentTab === 'profile' && <ProfileView />}
       </div>
 

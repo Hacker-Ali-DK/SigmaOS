@@ -4,12 +4,12 @@ import { type DailyScores } from './scoring/types';
 import { calculateScoresForDate } from './scoring/scoring-service';
 
 interface AppState {
-  currentTab: 'home' | 'progress' | 'add' | 'coach' | 'profile';
+  currentTab: 'home' | 'progress' | 'add' | 'profile';
   selectedDate: string; // YYYY-MM-DD
   showAddModal: boolean;
   isInitialized: boolean;
   showOnboarding: boolean;
-  setTab: (tab: 'home' | 'progress' | 'add' | 'coach' | 'profile') => void;
+  setTab: (tab: 'home' | 'progress' | 'add' | 'profile') => void;
   setSelectedDate: (date: string) => void;
   setShowAddModal: (show: boolean) => void;
   initializeDb: () => Promise<void>;

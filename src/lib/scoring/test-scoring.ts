@@ -475,6 +475,124 @@ async function runTests() {
     assert(parsedDate.getDate() === 24 && parsedDate.getMonth() === 6, `TEST U (DEF-25): Local date parsing preserves day 24 and month July (actual: ${parsedDate.toLocaleDateString()})`);
   }
 
+  // --- STAGE 10 DEDICATED PRAYER SCORING TESTS (TEST A - L) ---
+
+  // STAGE 10 TEST A: All 5 prayers explicitly prayed_on_time
+  {
+    const allOnTime = {
+      fajr: { status: 'prayed_on_time' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' }
+    };
+    const deen = await calculateDeenScore(date, allOnTime, [], []);
+    assert(deen.score === 100, `STAGE 10 TEST A: All 5 prayers prayed_on_time yields 100 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST B: Fajr explicitly missed, remaining 4 prayed_on_time
+  {
+    const fajrMissed = {
+      fajr: { status: 'missed' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' }
+    };
+    const deen = await calculateDeenScore(date, fajrMissed, [], []);
+    assert(deen.score === 80, `STAGE 10 TEST B: 1 missed + 4 on_time yields exactly 80 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST C: All 5 prayers explicitly missed
+  {
+    const allMissed = {
+      fajr: { status: 'missed' },
+      dhuhr: { status: 'missed' },
+      asr: { status: 'missed' },
+      maghrib: { status: 'missed' },
+      isha: { status: 'missed' }
+    };
+    const deen = await calculateDeenScore(date, allMissed, [], []);
+    assert(deen.score === 0, `STAGE 10 TEST C: All 5 prayers missed yields 0 (actual: ${deen.score})`);
+    assert(deen.status !== 'insufficient', `STAGE 10 TEST C: All 5 missed is tracked zero, NOT insufficient (actual status: ${deen.status})`);
+  }
+
+  // STAGE 10 TEST D: Fajr prayed_on_time logged at 10 PM
+  {
+    const loggedLateInDay = {
+      fajr: { status: 'prayed_on_time', completedTime: '22:00' }
+    };
+    const deen = await calculateDeenScore(date, loggedLateInDay, [], []);
+    assert(deen.score === 100, `STAGE 10 TEST D: Fajr logged at 10 PM preserves prayed_on_time 100 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST E: Fajr explicitly prayed_late
+  {
+    const fajrLate = {
+      fajr: { status: 'prayed_late' }
+    };
+    const deen = await calculateDeenScore(date, fajrLate, [], []);
+    assert(deen.score === 50, `STAGE 10 TEST E: Fajr explicitly prayed_late yields 50 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST F: Unlogged expired prayer remains not_tracked
+  {
+    const expiredUnlogged = {
+      fajr: { status: 'window_expired' }
+    };
+    const deen = await calculateDeenScore(date, expiredUnlogged, [], []);
+    assert(deen.status === 'insufficient', `STAGE 10 TEST F: Expired unlogged prayer remains not_tracked / insufficient (actual status: ${deen.status})`);
+  }
+
+  // STAGE 10 TEST G: Historical date entered later
+  {
+    const historicalDate = "2026-07-20";
+    const historicalLog = { fajr: { status: 'prayed_on_time' } };
+    const deen = await calculateDeenScore(historicalDate, historicalLog, [], []);
+    assert(deen.score === 100, `STAGE 10 TEST G: Historical Fajr logged on previous date yields 100 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST H: Mix (3 on_time + 1 late + 1 missed)
+  {
+    const mixPrayers = {
+      fajr: { status: 'prayed_on_time' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_late' },
+      isha: { status: 'missed' }
+    };
+    const deen = await calculateDeenScore(date, mixPrayers, [], []);
+    // (100 + 100 + 100 + 50 + 0) / 5 = 350 / 5 = 70
+    assert(deen.score === 70, `STAGE 10 TEST H: 3 on_time + 1 late + 1 missed yields 70 (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST I: No prayer data at all
+  {
+    const deen = await calculateDeenScore(date, null, [], []);
+    assert(deen.status === 'insufficient', `STAGE 10 TEST I: No prayer data returns status insufficient (actual status: ${deen.status})`);
+  }
+
+  // STAGE 10 TEST J: Existing Qur'an scoring behavior preserved
+  {
+    const quranRoutine = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
+    const deen = await calculateDeenScore(date, null, quranRoutine, []);
+    assert(deen.score === 100, `STAGE 10 TEST J: Qur'an recitation score preserved (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST K: Long-term goal separation preserved
+  {
+    const cumulativeGoal = [{ category: 'deen', targetValue: 30, currentValue: 0, unit: 'days' }];
+    const allOnTime = { fajr: { status: 'prayed_on_time' } };
+    const deen = await calculateDeenScore(date, allOnTime, [], cumulativeGoal);
+    assert(deen.score === 100, `STAGE 10 TEST K: Long-term goal separation preserved (actual: ${deen.score})`);
+  }
+
+  // STAGE 10 TEST L: Wellness and Discipline continue passing
+  {
+    const wellness = await calculateWellnessScore(date, mockUserProfile, { totalHours: 8.0, qualityRating: 5 }, [], { amountLiters: 3.0 }, [], null, null);
+    assert(wellness.score === 100, `STAGE 10 TEST L: Wellness score continues passing (actual: ${wellness.score})`);
+  }
+
   console.log(`\n=== SCORING VERIFICATION RESULTS ===`);
   console.log(`Total tests run: ${passedCount + failedCount}`);
   console.log(`Passed: ${passedCount}`);

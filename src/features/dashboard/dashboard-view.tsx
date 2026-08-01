@@ -144,6 +144,46 @@ export default function DashboardView({
     }
   };
 
+  // Helper to cycle prayer status on tap (On Time -> Late -> Missed -> Untracked)
+  const handleCyclePrayerStatus = async (field: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha', currentStatus: DetailedPrayerStatus) => {
+    let nextStatus: DetailedPrayerStatus = 'prayed_on_time';
+    if (currentStatus === 'prayed_on_time') nextStatus = 'prayed_late';
+    else if (currentStatus === 'prayed_late') nextStatus = 'missed';
+    else if (currentStatus === 'missed') nextStatus = 'not_tracked';
+    else nextStatus = 'prayed_on_time';
+
+    const existingLog = await db.prayers.get(selectedDate);
+    const now = new Date();
+    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const existingDetail = (existingLog && existingLog[field] && typeof existingLog[field] === 'object') ? (existingLog[field] as any) : {};
+
+    const updatedDetail: PrayerDetail = {
+      ...existingDetail,
+      status: nextStatus,
+      completedTime: (nextStatus === 'prayed_on_time' || nextStatus === 'prayed_late') ? currentTimeStr : undefined
+    };
+
+    await db.prayers.put({
+      ...(existingLog || {
+        date: selectedDate,
+        fajr: { status: 'not_tracked' },
+        dhuhr: { status: 'not_tracked' },
+        asr: { status: 'not_tracked' },
+        maghrib: { status: 'not_tracked' },
+        isha: { status: 'not_tracked' },
+        quranMinutes: 0
+      }),
+      [field]: updatedDetail
+    });
+
+    const routineTask = routines?.find(r => r.taskName.toLowerCase() === field);
+    if (routineTask?.id) {
+      await db.routines.update(routineTask.id, {
+        completed: nextStatus === 'prayed_on_time' || nextStatus === 'prayed_late'
+      });
+    }
+  };
+
   const getIcon = (name: string) => {
     switch (name) {
       case 'Fajr':
@@ -272,8 +312,10 @@ export default function DashboardView({
               return (
                 <div 
                   key={item.key} 
+                  onClick={() => handleCyclePrayerStatus(item.key, item.userStatus)}
+                  title="Click to cycle status: On Time -> Late -> Missed -> Untracked"
                   className={cn(
-                    "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative",
+                    "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative cursor-pointer hover:border-slate-700 active:scale-95",
                     item.isCurrentWindow 
                       ? "bg-cyan-950/30 border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20" 
                       : item.derivedState === 'prayed_on_time'
