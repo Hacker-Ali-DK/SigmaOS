@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, User, Settings, Bell, Database, Info, Flame, Shield, Activity, ChevronRight, BookOpen, Weight, Save, Download, Upload } from 'lucide-react';
 import { db, migrateLegacyPrayerLog } from '@/lib/db';
 import { useAppStore, getLocalDateString } from '@/lib/store';
+import { calculateScoresForDate } from '@/lib/scoring/scoring-service';
 import { cn } from '@/lib/utils';
 
 export default function ProfileView() {
@@ -12,6 +13,67 @@ export default function ProfileView() {
 
   // Queries
   const profile = useLiveQuery(() => db.userProfile.get(1));
+
+  // Dynamic calculation for Streak and Best Score from actual DB logs
+  const dynamicStats = useLiveQuery(async () => {
+    try {
+      // 1. Calculate active daily routine streak
+      const allRoutines = await db.routines.toArray();
+      const completedDates = new Set(
+        allRoutines.filter(r => r.completed).map(r => r.date)
+      );
+
+      let currentStreak = 0;
+      const today = new Date();
+      for (let i = 0; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        if (completedDates.has(dateStr)) {
+          currentStreak++;
+        } else {
+          // If today has no completed tasks yet, don't break streak on today
+          if (i === 0) continue;
+          break;
+        }
+      }
+
+      // 2. Calculate best score across historical dates
+      const [prayersLogs, sleepLogs, waterLogs, mealLogs] = await Promise.all([
+        db.prayers.toArray(),
+        db.sleep.toArray(),
+        db.water.toArray(),
+        db.meals.toArray()
+      ]);
+
+      const datesWithLogs = Array.from(new Set([
+        ...allRoutines.map(r => r.date),
+        ...prayersLogs.map(p => p.date),
+        ...sleepLogs.map(s => s.date),
+        ...waterLogs.map(w => w.date),
+        ...mealLogs.map(m => m.date)
+      ]));
+
+      let maxScore = 0;
+      for (const dStr of datesWithLogs) {
+        const scores = await calculateScoresForDate(dStr);
+        if (scores.overallAlignment > maxScore) {
+          maxScore = scores.overallAlignment;
+        }
+      }
+
+      return {
+        streak: currentStreak,
+        bestScore: maxScore
+      };
+    } catch (e) {
+      return { streak: 0, bestScore: 0 };
+    }
+  }, [], { streak: 0, bestScore: 0 });
   
   // Settings Form State
   const [name, setName] = useState('');
@@ -257,7 +319,7 @@ export default function ProfileView() {
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
               <Flame className="w-5 h-5 text-orange-500 fill-orange-500/10" />
-              <span className="text-xs font-bold text-slate-200 mt-2">23</span>
+              <span className="text-xs font-bold text-slate-200 mt-2">{dynamicStats?.streak ?? 0}</span>
               <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Streak</span>
             </div>
 
@@ -269,7 +331,7 @@ export default function ProfileView() {
 
             <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
               <Activity className="w-5 h-5 text-[#3A86FF]" />
-              <span className="text-xs font-bold text-slate-200 mt-2">87</span>
+              <span className="text-xs font-bold text-slate-200 mt-2">{dynamicStats?.bestScore ?? 0}</span>
               <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Best Score</span>
             </div>
           </div>

@@ -163,27 +163,8 @@ export default function QuickAddModal() {
     setShowAddModal(false);
   };
 
-  const quickDeenLog = async () => {
-    const log = await db.prayers.get(selectedDate) || {
-      date: selectedDate,
-      fajr: false,
-      dhuhr: false,
-      asr: false,
-      maghrib: false,
-      isha: false,
-      quranMinutes: 0
-    };
-    
-    // Toggle first unprayed or Fajr by default
-    if (!log.fajr) log.fajr = true;
-    else if (!log.dhuhr) log.dhuhr = true;
-    else if (!log.asr) log.asr = true;
-    else if (!log.maghrib) log.maghrib = true;
-    else if (!log.isha) log.isha = true;
-    
-    await db.prayers.put(log);
-    setShowAddModal(false);
-  };
+  // quickDeenLog removed — prayer logging is handled by handleSavePrayerStatus
+  // using proper PrayerDetail object format (not legacy booleans).
 
   const toggleTrigger = (trigger: string) => {
     setUrgeTriggers(prev => 

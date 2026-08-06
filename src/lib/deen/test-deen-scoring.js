@@ -45,8 +45,10 @@ function calculateDeenScoreMock(prayers, routines, activeGoals) {
     // not_tracked, pending, window_expired are excluded
   });
 
-  if (trackedPrayerCount > 0) {
-    const prayerScore = Math.round(trackedPrayerPointsSum / trackedPrayerCount);
+  const hasPrayerData = trackedPrayerCount > 0 || (prayers && (prayers.fajr !== undefined || prayers.dhuhr !== undefined || prayers.asr !== undefined || prayers.maghrib !== undefined || prayers.isha !== undefined));
+
+  if (hasPrayerData) {
+    const prayerScore = Math.round(trackedPrayerPointsSum / 5);
     factors.push({ name: 'Prayers', weight: 60, score: prayerScore });
     if (onTimeList.length > 0) positives.push(`Prayed on time: ${onTimeList.join(', ')}`);
     if (lateList.length > 0) positives.push(`Prayed late: ${lateList.join(', ')}`);
@@ -90,7 +92,7 @@ function calculateDeenScoreMock(prayers, routines, activeGoals) {
 
   if (trackedCount === 0) {
     return {
-      score: 60,
+      score: 0,
       status: 'insufficient',
       trackedCount: 0,
       totalCount,
@@ -111,7 +113,7 @@ function calculateDeenScoreMock(prayers, routines, activeGoals) {
   }
 
   return {
-    score: Math.max(10, Math.min(finalScore, 100)),
+    score: Math.max(0, Math.min(finalScore, 100)),
     status: trackedCount === totalCount ? 'completed' : 'partial',
     trackedCount,
     totalCount,
@@ -136,25 +138,31 @@ async function runTests() {
     }
   }
 
-  // 1. prayed_on_time = 100%
+  // 1. All 5 prayers prayed_on_time = 100%
+  {
+    const res = calculateDeenScoreMock({
+      fajr: { status: 'prayed_on_time' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' }
+    }, [], []);
+    assert(res.score === 100, '1. All 5 prayers prayed_on_time gives 100% prayer score');
+  }
+
+  // 2. Fajr prayed_on_time alone = 20% prayer score
   {
     const res = calculateDeenScoreMock({ fajr: { status: 'prayed_on_time' } }, [], []);
-    assert(res.score === 100, '1. prayed_on_time gives 100% prayer score');
+    assert(res.score === 20, '2. Fajr prayed_on_time gives 20% prayer score out of 5 prayers');
   }
 
-  // 2. prayed_late = 50%
+  // 3. Fajr prayed_late alone = 10% prayer score
   {
     const res = calculateDeenScoreMock({ fajr: { status: 'prayed_late' } }, [], []);
-    assert(res.score === 50, '2. prayed_late gives 50% prayer score');
+    assert(res.score === 10, '3. Fajr prayed_late gives 10% prayer score');
   }
 
-  // 3. missed = 0%
-  {
-    const res = calculateDeenScoreMock({ fajr: { status: 'missed' } }, [], []);
-    assert(res.score === 0 || res.score === 10, '3. missed gives 0% prayer score (clamped to min threshold 10)');
-  }
-
-  // 4. Excludes not_tracked, pending, window_expired from prayer scoring
+  // 4. Excludes pending, window_expired, not_tracked from positive points
   {
     const res = calculateDeenScoreMock({
       fajr: { status: 'prayed_on_time' },
@@ -162,39 +170,43 @@ async function runTests() {
       asr: { status: 'pending' },
       maghrib: { status: 'window_expired' }
     }, [], []);
-    // Only Fajr (100%) is tracked. Score should be 100, not penalized by excluded prayers.
-    assert(res.score === 100, '4. Excludes not_tracked, pending, and window_expired from prayer scoring');
+    // Only Fajr (100 pts) out of 5 prayers = 20% score
+    assert(res.score === 20, '4. Fajr on time with untracked/pending remaining prayers yields 20% score');
   }
 
-  // 5. Untracked prayers factor when all prayers excluded
+  // 5. Untracked prayers factor when no prayer logged
   {
-    const res = calculateDeenScoreMock({
-      fajr: { status: 'not_tracked' },
-      dhuhr: { status: 'not_tracked' }
-    }, [], []);
+    const res = calculateDeenScoreMock(null, [], []);
     assert(res.status === 'insufficient', '5. All excluded prayers results in untracked factor');
   }
 
   // 6. Dynamic weight redistribution (Prayers 60 + Quran 25, Goals untracked)
   {
-    // Fajr = 100%, Quran 15 mins = 50% score (15/30).
+    // All 5 prayers = 100%, Quran 15 mins = 50% score (15/30).
     // Prayers weight 60, Quran weight 25 -> Total weight 85.
     // Score = (100 * 60 + 50 * 25) / 85 = (6000 + 1250) / 85 = 7250 / 85 = 85.29 -> 85
-    const res = calculateDeenScoreMock({ fajr: { status: 'prayed_on_time' }, quranMinutes: 15 }, [], []);
+    const res = calculateDeenScoreMock({
+      fajr: { status: 'prayed_on_time' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' },
+      quranMinutes: 15
+    }, [], []);
     assert(res.score === 85 && res.trackedCount === 2, `6. Dynamic weight redistribution recalculates score correctly (Expected 85, got ${res.score})`);
   }
 
-  // 7. Dynamic weight redistribution (Only Prayers 60% tracked)
+  // 7. Dynamic weight redistribution (Fajr 100 + Dhuhr 50 out of 5 prayers)
   {
     const res = calculateDeenScoreMock({ fajr: { status: 'prayed_on_time' }, dhuhr: { status: 'prayed_late' } }, [], []);
-    // Prayers score = (100 + 50)/2 = 75%. Total weight = 60. Score = 75%.
-    assert(res.score === 75 && res.trackedCount === 1, `7. Single tracked category scales to 100% of active weight (Expected 75, got ${res.score})`);
+    // Prayers score = (100 + 50)/5 = 30%. Total weight = 60. Score = 30%.
+    assert(res.score === 30 && res.trackedCount === 1, `7. 1 on time + 1 late yields 30% prayer score (Expected 30, got ${res.score})`);
   }
 
-  // 8. If nothing tracked -> Not Tracked status (insufficient), not 0%
+  // 8. If nothing tracked -> Not Tracked status (insufficient) and 0 score
   {
     const res = calculateDeenScoreMock(null, [], []);
-    assert(res.status === 'insufficient' && res.score !== 0, '8. Empty data returns insufficient status and is not scored as 0%');
+    assert(res.status === 'insufficient' && res.score === 0, '8. Empty data returns insufficient status and 0 score');
   }
 
   // 9. Tracking coverage display

@@ -114,7 +114,7 @@ export async function calculateDeenAnalyticsForRange(
     scoreHistory.push({
       date: dateStr,
       displayDate,
-      score: deenScoreDetail.status !== 'insufficient' ? deenScoreDetail.score : 60
+      score: deenScoreDetail.status !== 'insufficient' ? deenScoreDetail.score : 0
     });
 
     // Qur'an minutes

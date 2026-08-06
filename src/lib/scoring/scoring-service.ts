@@ -175,7 +175,7 @@ export function parseDurationFromTimeLabel(timeLabel?: string): { minutes: numbe
 export function calculateDailySleepScore(sleepLog: any, sleepTarget = 8.0): ScoreDetail {
   if (!sleepLog) {
     return {
-      score: 60,
+      score: 0,
       status: 'insufficient',
       trackedCount: 0,
       totalCount: 3,
@@ -431,7 +431,7 @@ export async function calculateWellnessScore(
 
   if (trackedCount === 0) {
     return {
-      score: 60, // neutral baseline
+      score: 0,
       status: 'insufficient',
       trackedCount: 0,
       totalCount,
@@ -586,7 +586,7 @@ export async function calculateDisciplineScore(
 
   if (trackedCount === 0) {
     return {
-      score: 50,
+      score: 0,
       status: 'insufficient',
       trackedCount: 0,
       totalCount,
@@ -662,11 +662,13 @@ export async function calculateDeenScore(
       trackedPrayerCount++;
       missedList.push(field.charAt(0).toUpperCase() + field.slice(1));
     }
-    // not_tracked, pending, window_expired are excluded
+    // not_tracked, pending, window_expired are excluded from positive points
   });
 
-  if (trackedPrayerCount > 0) {
-    const prayerScore = Math.round(trackedPrayerPointsSum / trackedPrayerCount);
+  const hasPrayerData = trackedPrayerCount > 0 || (prayers && (prayers.fajr !== undefined || prayers.dhuhr !== undefined || prayers.asr !== undefined || prayers.maghrib !== undefined || prayers.isha !== undefined));
+
+  if (hasPrayerData) {
+    const prayerScore = Math.round(trackedPrayerPointsSum / 5);
     factors.push({ name: 'Prayers', weight: 60, score: prayerScore });
 
     if (onTimeList.length > 0) {
@@ -736,7 +738,7 @@ export async function calculateDeenScore(
 
   if (trackedCount === 0) {
     return {
-      score: 60,
+      score: 0,
       status: 'insufficient',
       trackedCount: 0,
       totalCount,
@@ -793,7 +795,7 @@ export async function calculateScoresForDate(dateStr: string): Promise<DailyScor
 
   const overallAlignment = activeScores.length > 0 
     ? Math.round(activeScores.reduce((sum, s) => sum + s, 0) / activeScores.length)
-    : 60; // neutral fallback when no category is tracked
+    : 0; // 0 fallback when no category is tracked
 
   return {
     wellness,
@@ -901,7 +903,7 @@ export async function calculateLongTermConsistency(endDateStr: string, daysLimit
     }
   }
 
-  return daysWithData > 0 ? Math.round(totalScoreSum / daysWithData) : 60;
+  return daysWithData > 0 ? Math.round(totalScoreSum / daysWithData) : 0;
 }
 
 export interface HistoricalScoreEntry {
@@ -997,6 +999,10 @@ export async function calculateHistoricalScoresForRange(
     const discipline = await calculateDisciplineScore(dateStr, rts, jrnl, activeGoals);
     const deen = await calculateDeenScore(dateStr, prayer, rts, activeGoals);
 
+    const wellnessScore = wellness.status === 'insufficient' ? 0 : wellness.score;
+    const disciplineScore = discipline.status === 'insufficient' ? 0 : discipline.score;
+    const deenScore = deen.status === 'insufficient' ? 0 : deen.score;
+
     const activeScores: number[] = [];
     if (wellness.status !== 'insufficient') activeScores.push(wellness.score);
     if (discipline.status !== 'insufficient') activeScores.push(discipline.score);
@@ -1004,7 +1010,7 @@ export async function calculateHistoricalScoresForRange(
 
     const dailyAlignment = activeScores.length > 0
       ? Math.round(activeScores.reduce((sum, s) => sum + s, 0) / activeScores.length)
-      : 60;
+      : 0;
 
     let name = dateStr;
     try {
@@ -1020,9 +1026,9 @@ export async function calculateHistoricalScoresForRange(
     results.push({
       name,
       dateStr,
-      Wellness: wellness.score,
-      Discipline: discipline.score,
-      Deen: deen.score,
+      Wellness: wellnessScore,
+      Discipline: disciplineScore,
+      Deen: deenScore,
       Alignment: dailyAlignment
     });
   }

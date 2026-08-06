@@ -330,7 +330,7 @@ async function runTests() {
 
   // TEST D — Partial Qur'an
   {
-    const prayers = { fajr: 'prayed_on_time', quranMinutes: 15 };
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_on_time', asr: 'prayed_on_time', maghrib: 'prayed_on_time', isha: 'prayed_on_time', quranMinutes: 15 };
     const routines = [{ taskName: "Qur'an", timeLabel: "30 min", completed: false }];
     const deen = await calculateDeenScore(date, prayers, routines, []);
     // Prayers = 100 (weight 60), Quran = 15/30 = 50 (weight 25). Score = (100*60 + 50*25)/85 = 7250/85 = 85
@@ -339,7 +339,7 @@ async function runTests() {
 
   // TEST E — Completed 15-Minute Qur'an Commitment
   {
-    const prayers = { fajr: 'prayed_on_time' };
+    const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_on_time', asr: 'prayed_on_time', maghrib: 'prayed_on_time', isha: 'prayed_on_time' };
     const routines = [{ taskName: "Qur'an", timeLabel: "15 min", completed: true }];
     const deen = await calculateDeenScore(date, prayers, routines, []);
     // Both Prayers (100) & Quran (100) completed -> 100
@@ -437,7 +437,8 @@ async function runTests() {
   {
     const prayers = { fajr: 'prayed_on_time', dhuhr: 'prayed_late' };
     const deen = await calculateDeenScore(date, prayers, [], []);
-    assert(deen.score < 100 && deen.score === 75, `TEST P: Partial prayer execution produces correct score < 100 (actual: ${deen.score})`);
+    // (100 + 50) / 5 = 30
+    assert(deen.score < 100 && deen.score === 30, `TEST P: Partial prayer execution produces correct score < 100 (actual: ${deen.score})`);
   }
 
   // TEST Q — Zero Category
@@ -520,7 +521,11 @@ async function runTests() {
   // STAGE 10 TEST D: Fajr prayed_on_time logged at 10 PM
   {
     const loggedLateInDay = {
-      fajr: { status: 'prayed_on_time', completedTime: '22:00' }
+      fajr: { status: 'prayed_on_time', completedTime: '22:00' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' }
     };
     const deen = await calculateDeenScore(date, loggedLateInDay, [], []);
     assert(deen.score === 100, `STAGE 10 TEST D: Fajr logged at 10 PM preserves prayed_on_time 100 (actual: ${deen.score})`);
@@ -532,7 +537,7 @@ async function runTests() {
       fajr: { status: 'prayed_late' }
     };
     const deen = await calculateDeenScore(date, fajrLate, [], []);
-    assert(deen.score === 50, `STAGE 10 TEST E: Fajr explicitly prayed_late yields 50 (actual: ${deen.score})`);
+    assert(deen.score === 10, `STAGE 10 TEST E: Fajr explicitly prayed_late yields 10 (actual: ${deen.score})`);
   }
 
   // STAGE 10 TEST F: Unlogged expired prayer remains not_tracked
@@ -547,7 +552,13 @@ async function runTests() {
   // STAGE 10 TEST G: Historical date entered later
   {
     const historicalDate = "2026-07-20";
-    const historicalLog = { fajr: { status: 'prayed_on_time' } };
+    const historicalLog = {
+      fajr: { status: 'prayed_on_time' },
+      dhuhr: { status: 'prayed_on_time' },
+      asr: { status: 'prayed_on_time' },
+      maghrib: { status: 'prayed_on_time' },
+      isha: { status: 'prayed_on_time' }
+    };
     const deen = await calculateDeenScore(historicalDate, historicalLog, [], []);
     assert(deen.score === 100, `STAGE 10 TEST G: Historical Fajr logged on previous date yields 100 (actual: ${deen.score})`);
   }

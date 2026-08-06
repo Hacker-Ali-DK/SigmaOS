@@ -52,6 +52,7 @@ export default function DashboardView({
     db.routines.where({ date: selectedDate }).sortBy('order'),
     [selectedDate]
   );
+  const activeGoals = useLiveQuery(() => db.goals.where({ completed: 0 as any }).toArray());
 
   const prayerTimes = React.useMemo(() => {
     try {
@@ -217,7 +218,7 @@ export default function DashboardView({
   const completedCount = routines ? routines.filter(r => r.completed).length : 0;
   const totalCount = routines ? routines.length : 0;
 
-  const overallAlignment = scores?.overallAlignment ?? 60;
+  const overallAlignment = scores?.overallAlignment ?? 0;
 
   // Custom stroke dash values
   const radius = 45;
@@ -611,7 +612,11 @@ export default function DashboardView({
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-extrabold text-slate-100">Today's Goals</span>
-            <span className="text-[9px] text-slate-500 font-bold">4 active targets • Gain Weight, Learn Flutter...</span>
+            <span className="text-[9px] text-slate-500 font-bold">
+              {activeGoals && activeGoals.length > 0
+                ? `${activeGoals.length} active • ${activeGoals.slice(0, 2).map(g => g.title).join(', ')}${activeGoals.length > 2 ? '...' : ''}`
+                : 'No active goals — tap to add one'}
+            </span>
           </div>
         </div>
         <ChevronRight className="w-4 h-4 text-slate-600" />

@@ -30,6 +30,137 @@ export default function AnalyticsView() {
   const prayerLogs = useLiveQuery(() => db.prayers.orderBy('date').reverse().limit(daysLimit).toArray(), [dateRange]);
   const profile = useLiveQuery(() => db.userProfile.get(1));
 
+  // Dynamic Habits Analytics computation over daysLimit range
+  const habitStats = useLiveQuery(async () => {
+    const dates: string[] = [];
+    const end = new Date(getLocalDateString());
+    for (let i = daysLimit - 1; i >= 0; i--) {
+      const d = new Date(end);
+      d.setDate(d.getDate() - i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      dates.push(`${year}-${month}-${day}`);
+    }
+
+    const startDateStr = dates[0];
+    const endDateStr = dates[dates.length - 1];
+
+    const [waterLogs, workoutLogs, routineLogs, journalLogs, pLogs] = await Promise.all([
+      db.water.where('date').between(startDateStr, endDateStr, true, true).toArray(),
+      db.workouts.where('date').between(startDateStr, endDateStr, true, true).toArray(),
+      db.routines.where('date').between(startDateStr, endDateStr, true, true).toArray(),
+      db.journal.where('date').between(startDateStr, endDateStr, true, true).toArray(),
+      db.prayers.where('date').between(startDateStr, endDateStr, true, true).toArray()
+    ]);
+
+    const waterMap = new Map(waterLogs.map(w => [w.date, w]));
+    const journalMap = new Map(journalLogs.map(j => [j.date, j]));
+    const prayerMap = new Map(pLogs.map(p => [p.date, p]));
+
+    const workoutsGrouped = new Map<string, any[]>();
+    workoutLogs.forEach(w => {
+      const arr = workoutsGrouped.get(w.date) || [];
+      arr.push(w);
+      workoutsGrouped.set(w.date, arr);
+    });
+
+    const routinesGrouped = new Map<string, any[]>();
+    routineLogs.forEach(r => {
+      const arr = routinesGrouped.get(r.date) || [];
+      arr.push(r);
+      routinesGrouped.set(r.date, arr);
+    });
+
+    const targetWater = profile?.dailyWaterTarget || 3.0;
+    const targetScreen = profile?.dailyScreenTimeTarget || 4.0;
+
+    let waterDays = 0;
+    let workoutDays = 0;
+    let studyDays = 0;
+    let readingDays = 0;
+    let screenDays = 0;
+
+    for (const dStr of dates) {
+      // 1. Water
+      const wLog = waterMap.get(dStr);
+      if (wLog && wLog.amountLiters >= targetWater) {
+        waterDays++;
+      }
+
+      // 2. Workout
+      const wList = workoutsGrouped.get(dStr) || [];
+      const dRts = routinesGrouped.get(dStr) || [];
+      const workoutMins = wList.reduce((s, w) => s + w.durationMinutes, 0);
+      const workoutRt = dRts.find(r => r.taskName.toLowerCase().includes('workout') || r.taskName.toLowerCase().includes('exercise'));
+      if (workoutMins >= 30 || workoutRt?.completed) {
+        workoutDays++;
+      }
+
+      // 3. Study / Learning
+      const studyRt = dRts.find(r => 
+        r.taskName.toLowerCase().includes('study') || 
+        r.taskName.toLowerCase().includes('programming') || 
+        r.taskName.toLowerCase().includes('learn')
+      );
+      if (studyRt?.completed) {
+        studyDays++;
+      }
+
+      // 4. Reading / Qur'an
+      const readRt = dRts.find(r => 
+        r.taskName.toLowerCase().includes('read') || 
+        r.taskName.toLowerCase().includes('book') || 
+        r.taskName.toLowerCase().includes("qur'an") || 
+        r.taskName.toLowerCase().includes("quran")
+      );
+      const pLog = prayerMap.get(dStr);
+      if (readRt?.completed || (pLog && pLog.quranMinutes && pLog.quranMinutes >= 15)) {
+        readingDays++;
+      }
+
+      // 5. Screen Time Limit
+      const jLog = journalMap.get(dStr);
+      if (jLog && jLog.screenHours !== undefined && jLog.screenHours <= targetScreen) {
+        screenDays++;
+      }
+    }
+
+    const totalDays = daysLimit;
+    return [
+      { 
+        name: `Water Target (${targetWater}L)`, 
+        value: `${waterDays}/${totalDays} days`, 
+        percent: Math.round((waterDays / totalDays) * 100), 
+        color: 'from-[#4CC9F0] to-[#3A86FF]' 
+      },
+      { 
+        name: 'Workout Target (30m)', 
+        value: `${workoutDays}/${totalDays} days`, 
+        percent: Math.round((workoutDays / totalDays) * 100), 
+        color: 'from-orange-500 to-amber-500' 
+      },
+      { 
+        name: 'Study / Learning Target', 
+        value: `${studyDays}/${totalDays} days`, 
+        percent: Math.round((studyDays / totalDays) * 100), 
+        color: 'from-indigo-500 to-[#3A86FF]' 
+      },
+      { 
+        name: 'Reading / Qur\'an Target', 
+        value: `${readingDays}/${totalDays} days`, 
+        percent: Math.round((readingDays / totalDays) * 100), 
+        color: 'from-emerald-400 to-[#02C39A]' 
+      },
+      { 
+        name: `Screen Time Limit (≤${targetScreen}h)`, 
+        value: `${screenDays}/${totalDays} days`, 
+        percent: Math.round((screenDays / totalDays) * 100), 
+        color: 'from-amber-400 to-orange-500' 
+      }
+    ];
+  }, [daysLimit, profile]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -46,21 +177,26 @@ export default function AnalyticsView() {
     loadTrends();
   }, [dateRange, daysLimit, prayerLogs]);
 
-  const avgWellness = chartData.length > 0 
-    ? Math.round(chartData.reduce((sum, d) => sum + d.Wellness, 0) / chartData.length) 
-    : 60;
+  const activeAlignmentDays = chartData.filter(d => d.Alignment > 0);
+  const activeWellnessDays = chartData.filter(d => d.Wellness > 0);
+  const activeDisciplineDays = chartData.filter(d => d.Discipline > 0);
+  const activeDeenDays = chartData.filter(d => d.Deen > 0);
 
-  const avgDiscipline = chartData.length > 0 
-    ? Math.round(chartData.reduce((sum, d) => sum + d.Discipline, 0) / chartData.length) 
-    : 60;
+  const avgAlignment = activeAlignmentDays.length > 0 
+    ? Math.round(activeAlignmentDays.reduce((sum, d) => sum + d.Alignment, 0) / activeAlignmentDays.length) 
+    : 0;
 
-  const avgDeen = chartData.length > 0 
-    ? Math.round(chartData.reduce((sum, d) => sum + d.Deen, 0) / chartData.length) 
-    : 60;
+  const avgWellness = activeWellnessDays.length > 0 
+    ? Math.round(activeWellnessDays.reduce((sum, d) => sum + d.Wellness, 0) / activeWellnessDays.length) 
+    : 0;
 
-  const avgAlignment = chartData.length > 0 
-    ? Math.round(chartData.reduce((sum, d) => sum + d.Alignment, 0) / chartData.length) 
-    : 60;
+  const avgDiscipline = activeDisciplineDays.length > 0 
+    ? Math.round(activeDisciplineDays.reduce((sum, d) => sum + d.Discipline, 0) / activeDisciplineDays.length) 
+    : 0;
+
+  const avgDeen = activeDeenDays.length > 0 
+    ? Math.round(activeDeenDays.reduce((sum, d) => sum + d.Deen, 0) / activeDeenDays.length) 
+    : 0;
 
   const getTrend = (key: 'Wellness' | 'Discipline' | 'Deen' | 'Alignment') => {
     if (chartData.length < 2) return { text: '0%', isUp: true, textArrow: '→' };
@@ -253,22 +389,17 @@ export default function AnalyticsView() {
       {activeTab === 'habits' && (
         <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
           <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Habit Consistency (7 Days)</h3>
+            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Habit Consistency ({daysLimit === 365 ? '1 Year' : `${daysLimit} Days`})</h3>
             
             <div className="flex flex-col gap-4">
-              {[
-                { name: 'Water Target (3L)', value: '5/7 days', percent: 71, color: 'from-[#4CC9F0] to-[#3A86FF]' },
-                { name: 'Workout (30m)', value: '3/7 days', percent: 43, color: 'from-orange-500 to-amber-500' },
-                { name: 'Study (2.5 hrs)', value: '6/7 days', percent: 85, color: 'from-indigo-500 to-[#3A86FF]' },
-                { name: 'Walk Target (8k steps)', value: '4/7 days', percent: 57, color: 'from-amber-400 to-orange-500' }
-              ].map((hab, idx) => (
+              {(habitStats || []).map((hab, idx) => (
                 <div key={idx} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-300">{hab.name}</span>
                     <span className="text-[10px] text-slate-500 font-bold">{hab.value} ({hab.percent}%)</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
-                    <div className={cn("h-full bg-gradient-to-r rounded-full", hab.color)} style={{ width: `${hab.percent}%` }} />
+                    <div className={cn("h-full bg-gradient-to-r rounded-full transition-all duration-500", hab.color)} style={{ width: `${hab.percent}%` }} />
                   </div>
                 </div>
               ))}
