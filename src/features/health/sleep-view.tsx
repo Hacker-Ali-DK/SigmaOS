@@ -205,7 +205,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="p-2 rounded-xl bg-transparent border border-slate-800 flex items-center justify-center text-slate-400 hover:text-[#D7B88C] cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -219,9 +219,9 @@ export default function SleepView({ onBack }: SleepViewProps) {
               setEditingNightLog(sleepLog || null);
               setShowNightForm(true);
             }}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1 text-xs font-semibold"
+            className="p-2 rounded-xl bg-transparent border border-slate-800 text-slate-400 hover:text-[#D7B88C] cursor-pointer transition-colors flex items-center gap-1 text-xs font-semibold"
           >
-            <Moon className="w-3.5 h-3.5 text-[#3A86FF]" />
+            <Moon className="w-3.5 h-3.5" />
             Night Sleep
           </button>
           <button 
@@ -229,20 +229,20 @@ export default function SleepView({ onBack }: SleepViewProps) {
               setEditingNap(null);
               setShowNapForm(true);
             }}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1 text-xs font-semibold"
+            className="p-2 rounded-xl bg-transparent border border-slate-800 text-slate-400 hover:text-[#D7B88C] cursor-pointer transition-colors flex items-center gap-1 text-xs font-semibold"
           >
-            <Plus className="w-3.5 h-3.5 text-[#02C39A]" />
+            <Plus className="w-3.5 h-3.5" />
             Add Nap
           </button>
         </div>
       </div>
 
       {/* Main Score & Total Sleep Circle Card */}
-      <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-950/20 via-[#0B0F19] to-slate-950 border border-indigo-500/10 shadow-lg text-center relative overflow-hidden py-8">
+      <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center border border-slate-800 shadow-lg text-center relative overflow-hidden py-8">
         <div className="flex items-center justify-center gap-8 w-full max-w-xs">
           {/* 24h Sleep Duration Indicator */}
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full bg-slate-900/60 border border-indigo-500/20 flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-slate-950 border border-slate-800 flex flex-col items-center justify-center">
               <span className="text-xl font-extrabold text-white">{total24HourSleep}h</span>
               <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">24h Total</span>
             </div>
@@ -257,7 +257,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
                   cx="48"
                   cy="48"
                   r="38"
-                  className="stroke-slate-900"
+                  className="stroke-[#1E2328]"
                   strokeWidth="6"
                   fill="transparent"
                 />
@@ -267,7 +267,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
                   r="38"
                   className={cn(
                     "transition-all duration-1000 ease-out",
-                    sleepScoreDetail.status === 'insufficient' ? "stroke-slate-700" : "stroke-indigo-500"
+                    sleepScoreDetail.status === 'insufficient' ? "stroke-slate-800" : "stroke-[#2D5BFF]"
                   )}
                   strokeWidth="6"
                   fill="transparent"
@@ -295,7 +295,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
 
         {sleepScoreDetail.status !== 'insufficient' && (
           <div className="mt-4 flex flex-col items-center">
-            <span className="text-[9px] text-[#4CC9F0] font-bold uppercase tracking-wider">
+            <span className="text-[9px] text-[#2D5BFF] font-bold uppercase tracking-wider">
               Based on {sleepScoreDetail.trackedCount} of {sleepScoreDetail.totalCount} factors
             </span>
             {sleepScoreDetail.recommendation && (
@@ -309,10 +309,10 @@ export default function SleepView({ onBack }: SleepViewProps) {
 
       {/* Forms Section */}
       {showNightForm && (
-        <form onSubmit={handleSaveNightSleep} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-slate-800 bg-[#0B0F19]/90 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleSaveNightSleep} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-[#1E2328] bg-[#0A0A0A]/90 animate-in slide-in-from-top duration-300">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <Moon className="w-4 h-4 text-[#3A86FF]" />
+              <Moon className="w-4 h-4 text-[#D7B88C]" />
               {editingNightLog ? 'Edit Night Sleep' : 'Log Night Sleep'}
             </h3>
             <button 
@@ -331,7 +331,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
                 type="time"
                 value={nightBedtime}
                 onChange={(e) => setNightBedtime(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
               />
             </div>
             <div>
@@ -340,7 +340,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
                 type="time"
                 value={nightWakeup}
                 onChange={(e) => setNightWakeup(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
                   onClick={() => setNightQuality(r)}
                   className={cn(
                     "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    nightQuality === r ? "bg-[#3A86FF] text-white" : "text-slate-500 hover:text-slate-300"
+                    nightQuality === r ? "bg-[#D7B88C] text-[#0A0A0A]" : "text-slate-500 hover:text-slate-300"
                   )}
                 >
                   {r}
@@ -376,7 +376,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
               placeholder="Not Tracked"
               value={nightAwakenings}
               onChange={(e) => setNightAwakenings(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
             />
           </div>
 
@@ -387,7 +387,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
               placeholder="Add sleep details or dream records"
               value={nightNotes}
               onChange={(e) => setNightNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200"
             />
           </div>
 
@@ -417,7 +417,7 @@ export default function SleepView({ onBack }: SleepViewProps) {
           <button
             type="submit"
             disabled={isUnusuallyLong && !confirmLongSleep}
-            className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-blue-500/10"
+            className="w-full py-3 bg-[#D7B88C] hover:bg-[#D7B88C]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-[#0A0A0A] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-blue-500/10"
           >
             Save Nighttime Sleep
           </button>
@@ -425,10 +425,10 @@ export default function SleepView({ onBack }: SleepViewProps) {
       )}
 
       {showNapForm && (
-        <form onSubmit={handleSaveNap} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-slate-800 bg-[#0B0F19]/90 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleSaveNap} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-[#1E2328] bg-[#0A0A0A]/90 animate-in slide-in-from-top duration-300">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <Coffee className="w-4 h-4 text-[#02C39A]" />
+              <Coffee className="w-4 h-4 text-[#D7B88C]" />
               {editingNap ? 'Edit Nap' : 'Log Nap'}
             </h3>
             <button 

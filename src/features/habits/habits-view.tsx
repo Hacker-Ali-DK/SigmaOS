@@ -170,32 +170,32 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
     {
       id: 'water', title: 'Drink Water', current: waterAmt,
       target: profile?.dailyWaterTarget || 3.0, unit: 'Liters',
-      color: 'bg-cyan-500', textColor: 'text-cyan-400', bgColor: 'bg-cyan-950/20 border-cyan-900/30',
+      color: 'bg-[#2D5BFF]', textColor: 'text-[#2D5BFF]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: Droplet, onIncrement: () => handleUpdateWater(0.25), onDecrement: () => handleUpdateWater(-0.25),
     },
     {
       id: 'workout', title: 'Workout', current: workoutMins, target: 30, unit: 'min',
-      color: 'bg-[#3A86FF]', textColor: 'text-[#3A86FF]', bgColor: 'bg-blue-950/20 border-blue-900/30',
+      color: 'bg-[#D7B88C]', textColor: 'text-[#D7B88C]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: Dumbbell, onIncrement: () => handleUpdateWorkout(10), onDecrement: () => handleUpdateWorkout(-10),
     },
     {
       id: 'dopamine', title: 'No Porn', current: cleanStreak, target: 90, unit: 'Days',
-      color: 'bg-orange-500', textColor: 'text-orange-400', bgColor: 'bg-orange-950/20 border-orange-900/30',
+      color: 'bg-[#9A5E4D]', textColor: 'text-[#9A5E4D]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: Shield, isLink: true, onClick: onNavigateToDopamine,
     },
     {
       id: 'quran', title: "Read Qur'an", current: quranMins, target: quranTargetMins, unit: 'min',
-      color: 'bg-emerald-500', textColor: 'text-emerald-400', bgColor: 'bg-emerald-950/20 border-emerald-900/30',
+      color: 'bg-[#22C55E]', textColor: 'text-[#22C55E]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: BookOpen, onIncrement: () => handleUpdateQuran(5), onDecrement: () => handleUpdateQuran(-5),
     },
     {
       id: 'study', title: 'Study', current: studyHours, target: studyTargetHours, unit: 'hrs',
-      color: 'bg-purple-500', textColor: 'text-purple-400', bgColor: 'bg-purple-950/20 border-purple-900/30',
+      color: 'bg-[#2D5BFF]', textColor: 'text-[#2D5BFF]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: GraduationCap,
     },
     {
       id: 'walk', title: 'Walk', current: walkSteps, target: 10000, unit: 'steps',
-      color: 'bg-amber-500', textColor: 'text-amber-500', bgColor: 'bg-amber-950/20 border-amber-900/30',
+      color: 'bg-[#D7B88C]', textColor: 'text-[#D7B88C]', bgColor: 'bg-[#1E2328] border-slate-800',
       icon: Footprints,
     },
   ];
@@ -214,7 +214,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-slate-950 border border-slate-900/60 p-1 rounded-2xl w-full">
+      <div className="flex bg-[#0A0A0A] border border-[#1E2328] p-1 rounded-2xl w-full">
         {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
           <button
             key={tab}
@@ -222,7 +222,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
             className={cn(
               "flex-1 py-2 text-center text-xs font-semibold capitalize rounded-xl transition-all cursor-pointer",
               activeTab === tab
-                ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm border border-slate-900/40"
+                ? "bg-[#1E2328] text-[#D7B88C] shadow-sm border border-slate-800"
                 : "text-slate-500 hover:text-slate-300"
             )}
           >
@@ -313,7 +313,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                   detail: aggregatedStats.workoutDays > 0
                     ? `Avg ${aggregatedStats.avgWorkoutMins} min on active days`
                     : 'No logged workouts in this period',
-                  color: 'bg-[#3A86FF]', textColor: 'text-[#3A86FF]',
+                  color: 'bg-[#D7B88C]', textColor: 'text-[#D7B88C]',
                   bgColor: 'bg-blue-950/20 border-blue-900/30', icon: Dumbbell,
                 },
                 {

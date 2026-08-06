@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import PWAProvider from "@/components/pwa-provider";
 
-const inter = { variable: "font-sans" };
-const outfit = { variable: "font-heading" };
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel" });
 
 export const metadata: Metadata = {
-  title: "Recovery+ - AI Life Companion",
-  description: "Premium offline-first personal operating system and AI Life Companion.",
+  title: "SIGMA RULER",
+  description: "Master yourself. Rule your life.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Recovery+",
+    title: "SIGMA RULER",
   },
 };
 
@@ -32,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} dark h-full antialiased`}
+      className={`${inter.variable} ${cinzel.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-navy-dark text-slate-100 select-none">
         <PWAProvider>{children}</PWAProvider>

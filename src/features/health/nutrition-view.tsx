@@ -74,7 +74,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -84,9 +84,9 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
         </div>
         <button 
           onClick={() => setShowAddForm(prev => !prev)}
-          className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
         >
-          <Plus className="w-3.5 h-3.5 text-[#3A86FF]" />
+          <Plus className="w-3.5 h-3.5 text-[#D7B88C]" />
           Add Meal
         </button>
       </div>
@@ -97,7 +97,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           meals.map((meal) => (
             <div 
               key={meal.id} 
-              className="bg-[#0B0F19]/45 border border-slate-900/60 rounded-2xl p-4 flex items-center justify-between group hover:border-slate-800/80 transition-colors"
+              className="bg-[#0A0A0A] border border-slate-800 rounded-2xl p-4 flex items-center justify-between group hover:border-slate-800/80 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
@@ -134,7 +134,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
 
       {/* Inline form */}
       {showAddForm && (
-        <form onSubmit={handleAddMeal} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-slate-800/50 bg-[#0B0F19]/80 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleAddMeal} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 bg-[#0A0A0A] border border-slate-800 animate-in slide-in-from-top duration-300">
           <div className="flex gap-1.5 bg-slate-950 p-1 rounded-xl">
             {(['breakfast', 'lunch', 'snack', 'dinner'] as const).map((type) => (
               <button
@@ -143,7 +143,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
                 onClick={() => setMealType(type)}
                 className={cn(
                   "flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer",
-                  mealType === type ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm" : "text-slate-500 hover:text-slate-300"
+                  mealType === type ? "bg-[#0B0F19] text-[#D7B88C] shadow-sm" : "text-slate-500 hover:text-slate-300"
                 )}
               >
                 {type}
@@ -158,7 +158,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
               placeholder="e.g. Chicken Rice, Salad"
               value={mealName}
               onChange={(e) => setMealName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 placeholder:text-slate-700"
+              className="w-full px-3 py-2 bg-[#0A0A0A] border border-slate-800 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 placeholder:text-slate-700"
             />
           </div>
 
@@ -169,7 +169,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
                 type="number"
                 value={mealCalories}
                 onChange={(e) => setMealCalories(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3 py-2 bg-[#0A0A0A] border border-slate-800 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
               />
             </div>
             <div className="flex-1">
@@ -178,7 +178,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
                 type="number"
                 value={mealProtein}
                 onChange={(e) => setMealProtein(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3 py-2 bg-[#0A0A0A] border border-slate-800 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
               />
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           <button
             type="submit"
             disabled={!mealName.trim()}
-            className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="w-full py-3 bg-[#D7B88C] hover:bg-[#D7B88C]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-[#0A0A0A] rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             Save Meal
           </button>
@@ -194,7 +194,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
       )}
 
       {/* Target Macros progress bars */}
-      <div className="flex flex-col gap-4 bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl mt-2">
+      <div className="flex flex-col gap-4 bg-[#1E2328]/60 border border-slate-800 p-5 rounded-3xl mt-2">
         <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Macro Targets</h3>
 
         {/* Calories Progress */}
@@ -205,7 +205,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           </div>
           <div className="w-full h-2 bg-slate-950/60 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-[#3A86FF] to-[#4CC9F0] rounded-full transition-all duration-500"
+              className="h-full bg-[#D7B88C] rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (totalCalories / calTarget) * 100)}%` }}
             />
           </div>
@@ -215,11 +215,11 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between text-xs text-slate-400 font-semibold">
             <span>Protein</span>
-            <span className="text-[#02C39A]">{totalProtein} / {protTarget} g</span>
+            <span className="text-[#22C55E]">{totalProtein} / {protTarget} g</span>
           </div>
           <div className="w-full h-2 bg-slate-950/60 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-[#02C39A] rounded-full transition-all duration-500"
+              className="h-full bg-[#22C55E] rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (totalProtein / protTarget) * 100)}%` }}
             />
           </div>

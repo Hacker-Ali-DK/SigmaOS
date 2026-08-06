@@ -111,7 +111,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
           {onBack && (
             <button 
               onClick={onBack}
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+              className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -128,17 +128,17 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
         <div className="flex items-center gap-1.5">
           <button 
             onClick={handlePrevDay}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button 
             onClick={handleNextDay}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
           >
             <ChevronRightIcon className="w-4 h-4" />
           </button>
-          <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 cursor-pointer">
+          <div className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 cursor-pointer">
             <Calendar className="w-4 h-4" />
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
             className={cn(
               "flex-1 py-2 text-center text-xs font-semibold capitalize rounded-xl transition-all cursor-pointer",
               activeTab === tab 
-                ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm border border-slate-900/40" 
+                ? "bg-[#0B0F19] text-[#D7B88C] shadow-sm border border-slate-900/40" 
                 : "text-slate-500 hover:text-slate-300"
             )}
           >
@@ -165,7 +165,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
       {/* Routine Timeline */}
       <div className="relative mt-4 pl-4">
         {/* Vertical Timeline Track Line */}
-        <div className="absolute left-[23px] top-4 bottom-4 w-[2px] bg-slate-900/60" />
+        <div className="absolute left-[23px] top-4 bottom-4 w-[2px] bg-[#1E2328]/60 border border-slate-800" />
 
         <div className="flex flex-col gap-6">
           {routines?.map((task) => {
@@ -186,8 +186,8 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
                   className={cn(
                     "absolute left-[14px] w-5 h-5 rounded-full flex items-center justify-center border z-10 transition-all cursor-pointer active:scale-90",
                     isCompleted
-                      ? "bg-[#02C39A] border-[#02C39A] text-slate-950 scale-105"
-                      : "bg-[#0B0F19] border-slate-800 text-slate-600 hover:border-slate-700"
+                      ? "bg-[#22C55E] border-[#22C55E] text-slate-950 scale-105"
+                      : "bg-[#0A0A0A] border-slate-800 text-slate-600 hover:border-slate-700"
                   )}
                 >
                   {isCompleted ? (
@@ -203,8 +203,8 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
                   className={cn(
                     "flex-1 flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer",
                     isCompleted
-                      ? "bg-[#0B0F19]/45 border-[#3A86FF]/10 text-slate-200"
-                      : "bg-[#0B0F19]/80 border-slate-900/70 hover:border-slate-800 text-slate-400"
+                      ? "bg-[#1E2328] border-[#D7B88C]/10 text-slate-200"
+                      : "bg-[#0A0A0A]/80 border-slate-800/70 hover:border-slate-800 text-slate-400"
                   )}
                 >
                   <div className="flex flex-col gap-0.5">
@@ -215,7 +215,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
                       {task.taskName}
                     </span>
                     <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                      {task.timeLabel} • <span className={cn(isCompleted ? "text-[#02C39A]" : "text-slate-500")}>{statusText}</span>
+                      {task.timeLabel} • <span className={cn(isCompleted ? "text-[#22C55E]" : "text-slate-500")}>{statusText}</span>
                     </span>
                   </div>
 

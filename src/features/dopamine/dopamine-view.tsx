@@ -110,7 +110,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -120,16 +120,16 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
         </div>
         <button 
           onClick={() => setShowAddForm(prev => !prev)}
-          className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
         >
-          <Plus className="w-3.5 h-3.5 text-[#3A86FF]" />
+          <Plus className="w-3.5 h-3.5 text-[#D7B88C]" />
           Log Urge
         </button>
       </div>
 
       {/* Clean Shield Badge */}
-      <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-emerald-950/20 via-[#0B0F19] to-slate-950 border border-emerald-500/10 shadow-lg text-center relative overflow-hidden py-8">
-        <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-[#02C39A] mb-4 relative shadow-2xl">
+      <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center bg-[#0A0A0A] border border-slate-800 shadow-lg text-center relative overflow-hidden py-8">
+        <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-[#22C55E] mb-4 relative shadow-2xl">
           <Shield className="w-10 h-10 fill-emerald-500/10 stroke-[1.5]" />
           <div className="absolute inset-0 rounded-full bg-emerald-500/5 blur-md"></div>
         </div>
@@ -139,7 +139,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+        <div className="bg-[#1E2328]/60 border border-slate-800 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Urges Today</span>
           <div className="flex items-baseline justify-between mt-1 font-heading">
             <span className="text-sm font-extrabold text-slate-200">{urgesTodayCount}</span>
@@ -147,25 +147,25 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
           </div>
         </div>
 
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+        <div className="bg-[#1E2328]/60 border border-slate-800 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Self-Control Score</span>
           <div className="flex items-baseline justify-between mt-1 font-heading">
-            <span className="text-sm font-extrabold text-[#3A86FF]">{selfControlScoreText}</span>
+            <span className="text-sm font-extrabold text-[#D7B88C]">{selfControlScoreText}</span>
             <span className="text-[8px] text-slate-500 font-bold">Resisted / Total</span>
           </div>
         </div>
 
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+        <div className="bg-[#1E2328]/60 border border-slate-800 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Resisted / Relapsed</span>
           <div className="flex items-baseline justify-between mt-1 font-heading">
-            <span className="text-sm font-extrabold text-[#02C39A]">
+            <span className="text-sm font-extrabold text-[#22C55E]">
               {resistedTodayCount} <span className="text-xs font-normal text-slate-500">/</span> <span className="text-rose-500">{relapsesTodayCount}</span>
             </span>
             <span className="text-[8px] text-slate-550 font-bold">Outcome counts</span>
           </div>
         </div>
 
-        <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
+        <div className="bg-[#1E2328]/60 border border-slate-800 p-3 rounded-2xl flex flex-col justify-between min-h-[64px]">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Top Triggers</span>
           <div className="flex items-baseline justify-between mt-1 font-heading">
             <span className="text-xs font-bold text-slate-300 truncate max-w-[100px]">{topTriggers}</span>
@@ -213,7 +213,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
                     className={cn(
                       "px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all cursor-pointer",
                       active
-                        ? "bg-[#3A86FF]/15 border-[#3A86FF] text-[#3A86FF]"
+                        ? "bg-[#D7B88C]/15 border-[#D7B88C] text-[#D7B88C]"
                         : "bg-slate-950 border-slate-900 text-slate-500 hover:border-slate-800"
                     )}
                   >
@@ -234,7 +234,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
                 className={cn(
                   "flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer",
                   resisted === 'yes'
-                    ? 'bg-[#02C39A]/15 border-[#02C39A] text-[#02C39A]'
+                    ? 'bg-[#02C39A]/15 border-[#02C39A] text-[#22C55E]'
                     : 'bg-slate-950 border-slate-900 text-slate-450 hover:border-slate-800'
                 )}
               >
@@ -263,13 +263,13 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Felt triggers while browsing Instagram."
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 placeholder:text-slate-700"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 placeholder:text-slate-700"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+            className="w-full py-3 bg-[#D7B88C] hover:bg-[#D7B88C]/95 text-[#0A0A0A] rounded-xl text-xs font-bold transition-all shadow-md shadow-[#D7B88C]/10 cursor-pointer"
           >
             Save Urge Log
           </button>
@@ -307,7 +307,7 @@ export default function DopamineView({ onBack }: DopamineViewProps) {
                       </span>
                       <span className={cn(
                         "text-[8px] border px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
-                        log.resisted === true ? "bg-emerald-950/20 border-emerald-900/30 text-[#02C39A]" :
+                        log.resisted === true ? "bg-emerald-950/20 border-emerald-900/30 text-[#22C55E]" :
                         log.resisted === false ? "bg-rose-950/20 border-rose-900/30 text-rose-400" :
                         "bg-slate-950 border-slate-900 text-slate-500"
                       )}>

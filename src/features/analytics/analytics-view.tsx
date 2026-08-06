@@ -132,7 +132,7 @@ export default function AnalyticsView() {
         name: `Water Target (${targetWater}L)`, 
         value: `${waterDays}/${totalDays} days`, 
         percent: Math.round((waterDays / totalDays) * 100), 
-        color: 'from-[#4CC9F0] to-[#3A86FF]' 
+        color: 'from-[#4CC9F0] to-[#D7B88C]' 
       },
       { 
         name: 'Workout Target (30m)', 
@@ -144,7 +144,7 @@ export default function AnalyticsView() {
         name: 'Study / Learning Target', 
         value: `${studyDays}/${totalDays} days`, 
         percent: Math.round((studyDays / totalDays) * 100), 
-        color: 'from-indigo-500 to-[#3A86FF]' 
+        color: 'from-indigo-500 to-[#D7B88C]' 
       },
       { 
         name: 'Reading / Qur\'an Target', 
@@ -218,50 +218,64 @@ export default function AnalyticsView() {
       value: `${avgAlignment}/100`,
       trend: getTrend('Alignment'),
       icon: Activity,
-      textColor: 'text-[#3A86FF]',
-      bgColor: 'bg-blue-950/20 border-blue-900/30'
+      textColor: 'text-white',
+      bgColor: 'bg-[#1E2328] border-slate-800'
     },
     {
       title: 'Wellness Avg',
       value: `${avgWellness}/100`,
       trend: getTrend('Wellness'),
       icon: Award,
-      textColor: 'text-[#4CC9F0]',
-      bgColor: 'bg-cyan-950/20 border-cyan-900/30'
+      textColor: 'text-[#2D5BFF]',
+      bgColor: 'bg-blue-950/10 border-blue-900/20'
     },
     {
       title: 'Discipline Avg',
       value: `${avgDiscipline}/100`,
       trend: getTrend('Discipline'),
       icon: Sparkles,
-      textColor: 'text-[#FFB703]',
-      bgColor: 'bg-amber-950/20 border-amber-900/30'
+      textColor: 'text-[#9A5E4D]',
+      bgColor: 'bg-orange-950/10 border-orange-900/20'
     },
     {
       title: 'Deen Avg',
       value: `${avgDeen}/100`,
       trend: getTrend('Deen'),
       icon: BookOpen,
-      textColor: 'text-[#02C39A]',
-      bgColor: 'bg-emerald-950/20 border-emerald-900/30'
+      textColor: 'text-[#D7B88C]',
+      bgColor: 'bg-amber-950/10 border-amber-900/20'
     }
   ];
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col px-4 pt-6 pb-24 min-h-screen bg-[#0A0A0A] animate-in fade-in duration-500 relative">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-slate-200 font-heading tracking-wide">
+      <div className="flex flex-col items-center mb-6 mt-2">
+        <h1 className="text-xl font-bold text-white font-heading tracking-[0.2em] uppercase">
           Progress
         </h1>
-        <div className="flex gap-1.5 items-center">
-          <Calendar className="w-3.5 h-3.5 text-[#3A86FF]" />
-          <span className="text-xs text-slate-400 font-semibold">Date Range:</span>
-        </div>
       </div>
 
-      {/* Date Range Button Selector */}
-      <div className="flex bg-slate-950 border border-slate-900/60 p-1 rounded-2xl w-full">
+      {/* Tabs */}
+      <div className="flex bg-[#1E2328] rounded-xl p-1 mb-4 shadow-lg shadow-black/20">
+        {(['overview', 'habits', 'health', 'deen'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "flex-1 py-2.5 text-center text-[10px] font-bold capitalize rounded-lg transition-all cursor-pointer",
+              activeTab === tab 
+                ? "bg-[#0A0A0A] text-[#D7B88C] shadow-sm border border-slate-800" 
+                : "text-slate-500 hover:text-slate-300"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Date Range Selector */}
+      <div className="flex gap-2 mb-6">
         {([
           { key: '7d', label: '7 Days' },
           { key: '30d', label: '30 Days' },
@@ -272,31 +286,13 @@ export default function AnalyticsView() {
             key={range.key}
             onClick={() => setDateRange(range.key)}
             className={cn(
-              "flex-1 py-1.5 text-center text-xs font-semibold capitalize rounded-xl transition-all cursor-pointer",
+              "flex-1 py-2 text-center text-[10px] font-bold capitalize rounded-lg transition-all cursor-pointer border",
               dateRange === range.key 
-                ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm border border-slate-900/40" 
-                : "text-slate-500 hover:text-slate-350"
+                ? "bg-[#2D5BFF] text-white border-[#2D5BFF] shadow-lg shadow-[#2D5BFF]/20" 
+                : "bg-[#1E2328] text-slate-400 border-slate-800/50 hover:text-slate-300 hover:border-slate-700"
             )}
           >
             {range.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex bg-slate-950 border border-slate-900/60 p-1 rounded-2xl w-full mt-1">
-        {(['overview', 'habits', 'health', 'deen'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex-1 py-2 text-center text-xs font-semibold capitalize rounded-xl transition-all cursor-pointer",
-              activeTab === tab 
-                ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm border border-slate-900/40" 
-                : "text-slate-500 hover:text-slate-300"
-            )}
-          >
-            {tab}
           </button>
         ))}
       </div>
@@ -312,21 +308,23 @@ export default function AnalyticsView() {
               return (
                 <div 
                   key={idx} 
-                  className={cn("glass-panel rounded-2xl p-4 flex flex-col justify-between border min-h-[96px]", m.bgColor)}
+                  className={cn("rounded-3xl p-4 flex flex-col justify-between border bg-[#0A0A0A] shadow-md", m.bgColor.includes('border-') ? m.bgColor.split(' ').find(c => c.startsWith('border-')) : 'border-[#1E2328]')}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{m.title}</span>
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{m.title}</span>
                     <span className={cn(
-                      "text-[10px] font-extrabold flex items-center gap-0.5",
-                      isNeutral ? "text-slate-500" : m.trend.isUp ? "text-[#02C39A]" : "text-rose-500"
+                      "text-[10px] font-extrabold flex items-center gap-0.5 px-1.5 py-0.5 rounded-md",
+                      isNeutral ? "text-slate-500 bg-slate-900" : m.trend.isUp ? "text-[#02C39A] bg-[#02C39A]/10" : "text-rose-500 bg-rose-500/10"
                     )}>
                       {!isNeutral && <TrendIcon className="w-2.5 h-2.5" />}
                       {m.trend.text}
                     </span>
                   </div>
-                  <div className="flex items-end justify-between mt-2">
-                    <span className="text-lg font-extrabold text-slate-100 font-heading">{m.value}</span>
-                    <Icon className={cn("w-4 h-4 opacity-80", m.textColor)} />
+                  <div className="flex items-end justify-between mt-3">
+                    <span className="text-2xl font-extrabold text-slate-100 font-heading tracking-tight">{m.value.split('/')[0]}<span className="text-[10px] text-slate-600 ml-0.5">/100</span></span>
+                    <div className={cn("p-1.5 rounded-full", m.bgColor.includes('bg-') ? m.bgColor.split(' ').find(c => c.startsWith('bg-')) : 'bg-[#1E2328]')}>
+                      <Icon className={cn("w-4 h-4", m.textColor)} />
+                    </div>
                   </div>
                 </div>
               );
@@ -334,9 +332,9 @@ export default function AnalyticsView() {
           </div>
 
           {/* Recharts Chart Card */}
-          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+          <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-4 shadow-lg">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Score Comparison Trends</h3>
+              <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Score Comparison Trends</h3>
             </div>
             
             {/* Chart Frame */}
@@ -344,42 +342,43 @@ export default function AnalyticsView() {
               {mounted && !loading ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
-                    <XAxis dataKey="name" stroke="#64748B" tickLine={false} />
-                    <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1E2328" vertical={false} />
+                    <XAxis dataKey="name" stroke="#64748B" tickLine={false} axisLine={false} dy={10} />
+                    <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} axisLine={false} dx={-10} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                      contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#1E2328', borderRadius: '16px', color: '#F8FAFC', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
                     />
-                    <Line type="monotone" dataKey="Alignment" stroke="#3A86FF" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="Wellness" stroke="#4CC9F0" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Discipline" stroke="#FFB703" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Deen" stroke="#02C39A" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Alignment" stroke="#FFFFFF" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#FFFFFF' }} />
+                    <Line type="monotone" dataKey="Wellness" stroke="#2D5BFF" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#2D5BFF' }} />
+                    <Line type="monotone" dataKey="Discipline" stroke="#9A5E4D" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#9A5E4D' }} />
+                    <Line type="monotone" dataKey="Deen" stroke="#D7B88C" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#D7B88C' }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-600 font-semibold animate-pulse">
+                <div className="w-full h-full flex items-center justify-center text-slate-600 font-semibold animate-pulse text-xs">
                   Loading trend data...
                 </div>
               )}
             </div>
 
             {/* Legend indicators */}
-            <div className="flex items-center justify-center gap-4 flex-wrap mt-1">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#3A86FF]" />
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Alignment</span>
+            <div className="flex items-center justify-center gap-3 flex-wrap mt-2">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_5px_rgba(255,255,255,0.5)]" />
+                <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Alignment</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#4CC9F0]" />
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Wellness</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                <span className="w-2 h-2 rounded-full bg-[#2D5BFF] shadow-[0_0_5px_rgba(45,91,255,0.5)]" />
+                <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Wellness</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#FFB703]" />
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Discipline</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                <span className="w-2 h-2 rounded-full bg-[#9A5E4D] shadow-[0_0_5px_rgba(154,94,77,0.5)]" />
+                <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Discipline</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#02C39A]" />
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Deen</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                <span className="w-2 h-2 rounded-full bg-[#D7B88C] shadow-[0_0_5px_rgba(215,184,140,0.5)]" />
+                <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Deen</span>
               </div>
             </div>
           </div>
@@ -388,17 +387,17 @@ export default function AnalyticsView() {
 
       {activeTab === 'habits' && (
         <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
-          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Habit Consistency ({daysLimit === 365 ? '1 Year' : `${daysLimit} Days`})</h3>
+          <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-5 shadow-lg">
+            <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Habit Consistency ({daysLimit === 365 ? '1 Year' : `${daysLimit} Days`})</h3>
             
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {(habitStats || []).map((hab, idx) => (
                 <div key={idx} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-300">{hab.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">{hab.value} ({hab.percent}%)</span>
+                    <span className="font-bold text-slate-200">{hab.name}</span>
+                    <span className="text-[10px] font-bold text-slate-400">{hab.value} <span className="text-white ml-1">({hab.percent}%)</span></span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#1E2328] rounded-full overflow-hidden">
                     <div className={cn("h-full bg-gradient-to-r rounded-full transition-all duration-500", hab.color)} style={{ width: `${hab.percent}%` }} />
                   </div>
                 </div>
@@ -430,10 +429,10 @@ export default function AnalyticsView() {
         if (validSleepLogs.length === 0) {
           return (
             <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
-              <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-6 rounded-3xl text-center text-slate-500 text-xs font-semibold py-12">
+              <div className="bg-[#0A0A0A] border border-[#1E2328] p-6 rounded-3xl text-center text-slate-500 text-xs font-semibold py-12 shadow-lg">
                 <Moon className="w-10 h-10 text-slate-600 mx-auto mb-3 opacity-40 animate-pulse" />
                 No sleep records found for the selected date range.
-                <p className="text-[10px] text-slate-650 mt-1">Please log your sleep in the Sleep Tracker page to view live analytics.</p>
+                <p className="text-[10px] text-slate-650 mt-2">Please log your sleep in the Sleep Tracker page to view live analytics.</p>
               </div>
             </div>
           );
@@ -443,74 +442,77 @@ export default function AnalyticsView() {
           <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
             {/* Live Sleep consistency summary grid */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="glass-panel rounded-2xl p-4 bg-indigo-950/10 border-indigo-900/20 flex flex-col justify-between min-h-[90px]">
+              <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Average Sleep Duration</span>
-                <span className="text-base font-extrabold text-slate-200 mt-2 font-heading">
-                  {stats.averageDuration} hrs
+                <span className="text-xl font-extrabold text-slate-200 mt-2 font-heading tracking-tight">
+                  {stats.averageDuration} <span className="text-[10px] text-slate-500 font-sans ml-0.5">hrs</span>
                 </span>
-                <span className="text-[8px] text-slate-500 font-bold mt-1 uppercase">Target: {sleepTarget} hrs</span>
+                <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">Target: {sleepTarget} hrs</span>
               </div>
               
-              <div className="glass-panel rounded-2xl p-4 bg-purple-950/10 border-purple-900/20 flex flex-col justify-between min-h-[90px]">
+              <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Schedule Consistency</span>
-                <span className="text-base font-extrabold text-[#3A86FF] mt-2 font-heading">
-                  {stats.consistencyScore}%
+                <span className="text-xl font-extrabold text-[#D7B88C] mt-2 font-heading tracking-tight">
+                  {stats.consistencyScore}<span className="text-[10px] text-slate-500 font-sans ml-0.5">%</span>
                 </span>
-                <span className="text-[8px] text-slate-500 font-bold mt-1 uppercase">Bedtime var: {stats.bedtimeVariation}</span>
+                <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">Bedtime var: {stats.bedtimeVariation}</span>
               </div>
 
-              <div className="glass-panel rounded-2xl p-4 bg-cyan-950/10 border-cyan-900/20 flex flex-col justify-between min-h-[90px]">
+              <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Avg Bedtime / Wake</span>
-                <span className="text-xs font-extrabold text-slate-200 mt-2">
+                <span className="text-xs font-extrabold text-slate-200 mt-2 font-mono">
                   {stats.averageBedtime} / {stats.averageWakeup}
                 </span>
-                <span className="text-[8px] text-slate-500 font-bold mt-1 uppercase">Wake var: {stats.waketimeVariation}</span>
+                <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">Wake var: {stats.waketimeVariation}</span>
               </div>
 
-              <div className="glass-panel rounded-2xl p-4 bg-emerald-950/10 border-emerald-900/20 flex flex-col justify-between min-h-[90px]">
+              <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Night Sleep vs Naps</span>
-                <span className="text-xs font-extrabold text-[#02C39A] mt-2">
+                <span className="text-xs font-extrabold text-[#02C39A] mt-2 font-mono">
                   {stats.averageDuration}h / {avgNapHours}h
                 </span>
-                <span className="text-[8px] text-slate-500 font-bold mt-1 uppercase">Avg nap: {avgNapMins.toFixed(0)} min</span>
+                <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">Avg nap: {avgNapMins.toFixed(0)} min</span>
               </div>
             </div>
 
             {/* Sleep Score Trend Chart */}
-            <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-              <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Sleep Score Trend</h3>
+            <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-4 shadow-lg">
+              <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Sleep Score Trend</h3>
               <div className="w-full h-48 mt-1 text-xs">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={sleepTrendData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
-                    <XAxis dataKey="date" stroke="#64748B" tickLine={false} />
-                    <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1E2328" vertical={false} />
+                    <XAxis dataKey="date" stroke="#64748B" tickLine={false} axisLine={false} dy={10} />
+                    <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} axisLine={false} dx={-10} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                      contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#1E2328', borderRadius: '16px', color: '#F8FAFC', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
                     />
-                    <Line type="monotone" dataKey="Sleep Score" stroke="#818CF8" strokeWidth={3} dot={false} />
-                    <Line type="monotone" dataKey="Duration" stroke="#34D399" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="Sleep Score" stroke="#818CF8" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#818CF8' }} />
+                    <Line type="monotone" dataKey="Duration" stroke="#34D399" strokeWidth={1.5} dot={false} activeDot={{ r: 4, fill: '#34D399' }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex items-center justify-center gap-4 text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#818CF8]" />
-                  <span>Sleep Score</span>
+              <div className="flex items-center justify-center gap-4 mt-2">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                  <span className="w-2 h-2 rounded-full bg-[#818CF8] shadow-[0_0_5px_rgba(129,140,248,0.5)]" />
+                  <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Sleep Score</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#34D399]" />
-                  <span>Duration (hrs)</span>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#1E2328]">
+                  <span className="w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_5px_rgba(52,211,153,0.5)]" />
+                  <span className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">Duration (hrs)</span>
                 </div>
               </div>
             </div>
 
             {/* Objective Health Insight Banner */}
-            <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-indigo-400 shrink-0" />
+            <div className="p-4 rounded-3xl bg-[#0A0A0A] border border-[#1E2328] shadow-md flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-[#1E2328] flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+              </div>
               <div className="flex flex-col">
                 <span className="text-xs font-extrabold text-slate-200">Sleep Schedule Insight</span>
-                <span className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                <span className="text-[9px] text-slate-500 mt-1 leading-relaxed">
                   {stats.consistencyScore >= 80 
                     ? "Your sleep schedule has become more consistent. Continuing this routine supports circadian alignment."
                     : "Variable bedtime or wake-up times have been logged. Consistently aligning bedtime within a 30-minute window supports recovery."}
@@ -525,91 +527,92 @@ export default function AnalyticsView() {
         <div className="flex flex-col gap-4 mt-2 animate-in fade-in duration-300">
           {/* Rate Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="glass-panel rounded-2xl p-4 bg-emerald-950/20 border-emerald-900/30 flex flex-col justify-between">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tracking Coverage</span>
-              <span className="text-xl font-extrabold text-emerald-400 mt-2 font-heading">
-                {deenAnalytics.coveragePercent}%
+            <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Tracking Coverage</span>
+              <span className="text-xl font-extrabold text-[#02C39A] mt-2 font-heading tracking-tight">
+                {deenAnalytics.coveragePercent}<span className="text-[10px] text-slate-500 font-sans ml-0.5">%</span>
               </span>
-              <span className="text-[9px] text-slate-500 font-medium mt-1">
+              <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">
                 {deenAnalytics.trackedPrayers}/{deenAnalytics.applicablePrayers} prayers
               </span>
             </div>
 
-            <div className="glass-panel rounded-2xl p-4 bg-cyan-950/20 border-cyan-900/30 flex flex-col justify-between">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">On-Time Rate</span>
-              <span className="text-xl font-extrabold text-cyan-400 mt-2 font-heading">
-                {deenAnalytics.onTimeRate}%
+            <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">On-Time Rate</span>
+              <span className="text-xl font-extrabold text-cyan-400 mt-2 font-heading tracking-tight">
+                {deenAnalytics.onTimeRate}<span className="text-[10px] text-slate-500 font-sans ml-0.5">%</span>
               </span>
-              <span className="text-[9px] text-slate-500 font-medium mt-1">
-                {deenAnalytics.onTimeCount} prayed on time
-              </span>
-            </div>
-
-            <div className="glass-panel rounded-2xl p-4 bg-amber-950/20 border-amber-900/30 flex flex-col justify-between">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Late Rate</span>
-              <span className="text-xl font-extrabold text-amber-400 mt-2 font-heading">
-                {deenAnalytics.lateRate}%
-              </span>
-              <span className="text-[9px] text-slate-500 font-medium mt-1">
-                {deenAnalytics.lateCount} prayed late
+              <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">
+                {deenAnalytics.onTimeCount} on time
               </span>
             </div>
 
-            <div className="glass-panel rounded-2xl p-4 bg-rose-950/20 border-rose-900/30 flex flex-col justify-between">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Missed Rate</span>
-              <span className="text-xl font-extrabold text-rose-400 mt-2 font-heading">
-                {deenAnalytics.missedRate}%
+            <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Late Rate</span>
+              <span className="text-xl font-extrabold text-[#D7B88C] mt-2 font-heading tracking-tight">
+                {deenAnalytics.lateRate}<span className="text-[10px] text-slate-500 font-sans ml-0.5">%</span>
               </span>
-              <span className="text-[9px] text-slate-500 font-medium mt-1">
-                {deenAnalytics.missedCount} logged missed
+              <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">
+                {deenAnalytics.lateCount} late
+              </span>
+            </div>
+
+            <div className="rounded-3xl p-4 bg-[#0A0A0A] border border-[#1E2328] shadow-md flex flex-col justify-between min-h-[90px]">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Missed Rate</span>
+              <span className="text-xl font-extrabold text-rose-500 mt-2 font-heading tracking-tight">
+                {deenAnalytics.missedRate}<span className="text-[10px] text-slate-500 font-sans ml-0.5">%</span>
+              </span>
+              <span className="text-[8px] text-slate-600 font-bold mt-1 uppercase">
+                {deenAnalytics.missedCount} missed
               </span>
             </div>
           </div>
 
           {/* Deen Consistency Score History Chart */}
-          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Deen Consistency Score History</h3>
-            <div className="w-full h-44 text-xs">
+          <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-4 shadow-lg">
+            <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Deen Consistency Score History</h3>
+            <div className="w-full h-44 text-xs mt-1">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={deenAnalytics.scoreHistory} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
-                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} />
-                  <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1E2328" vertical={false} />
+                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} axisLine={false} dy={10} />
+                  <YAxis stroke="#64748B" domain={[0, 100]} tickLine={false} axisLine={false} dx={-10} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                    contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#1E2328', borderRadius: '16px', color: '#F8FAFC', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
                   />
-                  <Line type="monotone" dataKey="score" name="Deen Score" stroke="#02C39A" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="score" name="Deen Score" stroke="#02C39A" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#02C39A' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Per-Prayer Breakdown */}
-          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Live Per-Prayer Breakdown</h3>
+          <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-4 shadow-lg">
+            <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Live Per-Prayer Breakdown</h3>
             
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5 mt-2">
               {deenAnalytics.perPrayerStats.map((pr) => (
-                <div key={pr.key} className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-300">{pr.name}</span>
-                    <span className="text-[10px] text-slate-400 font-bold">
-                      {pr.onTimeCount}/{pr.trackedCount > 0 ? pr.trackedCount : pr.applicableCount} on time ({pr.onTimePercent}%)
+                <div key={pr.key} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-200">{pr.name}</span>
+                    <span className="text-[10px] font-bold text-slate-400">
+                      {pr.onTimeCount}/{pr.trackedCount > 0 ? pr.trackedCount : pr.applicableCount} on time <span className="text-white ml-1">({pr.onTimePercent}%)</span>
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-slate-950/60 rounded-full overflow-hidden flex">
+                  <div className="w-full h-2 bg-[#1E2328] rounded-full overflow-hidden flex">
                     <div 
-                      className="h-full bg-emerald-400 transition-all" 
+                      className="h-full bg-[#02C39A] transition-all" 
                       style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.onTimeCount / pr.applicableCount) * 100) : 0}%` }} 
                       title={`${pr.onTimeCount} on time`}
                     />
                     <div 
-                      className="h-full bg-amber-400 transition-all" 
+                      className="h-full bg-[#D7B88C] transition-all" 
                       style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.lateCount / pr.applicableCount) * 100) : 0}%` }} 
                       title={`${pr.lateCount} late`}
                     />
                     <div 
-                      className="h-full bg-rose-400 transition-all" 
+                      className="h-full bg-rose-500 transition-all" 
                       style={{ width: `${pr.trackedCount > 0 ? Math.round((pr.missedCount / pr.applicableCount) * 100) : 0}%` }} 
                       title={`${pr.missedCount} missed`}
                     />
@@ -620,25 +623,27 @@ export default function AnalyticsView() {
           </div>
 
           {/* Qur'an Recitation Trends Chart */}
-          <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl flex flex-col gap-4">
+          <div className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-4 shadow-lg">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Qur'an Recitation Trends</h3>
-              <div className="flex items-center gap-3 text-[10px] text-slate-400 font-bold">
-                <span>Avg: <strong className="text-cyan-400">{deenAnalytics.avgQuranMinutes}</strong> min/day</span>
-                <span>Active: <strong className="text-emerald-400">{deenAnalytics.quranActiveDays}</strong>/{deenAnalytics.daysLimit} days</span>
+              <h3 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Qur'an Recitation Trends</h3>
+              <div className="flex items-center gap-3 text-[9px] text-slate-400 font-bold uppercase">
+                <span>Avg: <strong className="text-cyan-400 text-[10px]">{deenAnalytics.avgQuranMinutes}</strong> min</span>
+                <span>Active: <strong className="text-[#02C39A] text-[10px]">{deenAnalytics.quranActiveDays}</strong>/{deenAnalytics.daysLimit} d</span>
               </div>
             </div>
 
-            <div className="w-full h-40 text-xs">
+            <div className="w-full h-40 text-xs mt-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={deenAnalytics.quranTrend} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1A2035" vertical={false} />
-                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} />
-                  <YAxis stroke="#64748B" tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1E2328" vertical={false} />
+                  <XAxis dataKey="displayDate" stroke="#64748B" tickLine={false} axisLine={false} dy={10} />
+                  <YAxis stroke="#64748B" tickLine={false} axisLine={false} dx={-10} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1F2937', borderRadius: '12px', color: '#F8FAFC' }}
+                    contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#1E2328', borderRadius: '16px', color: '#F8FAFC', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                    cursor={{fill: '#1E2328'}}
                   />
-                  <Bar dataKey="minutes" name="Recitation (mins)" fill="#4CC9F0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="minutes" name="Recitation (mins)" fill="#2D5BFF" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

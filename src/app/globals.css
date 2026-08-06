@@ -1,24 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #03050C;
+  --background: #0A0A0A;
   --foreground: #F8FAFC;
   
-  --navy-dark: #03050C;
-  --navy-card: #0B0F19;
-  --navy-glass: rgba(11, 15, 25, 0.65);
-  --navy-light: #161B2B;
+  --navy-dark: #0A0A0A;
+  --navy-card: #1E2328;
+  --navy-glass: rgba(30, 35, 40, 0.65);
+  --navy-light: #2A303C;
   
-  --accent-blue: #3A86FF;
+  --accent-blue: #2D5BFF;
   --accent-cyan: #4CC9F0;
-  --success-green: #02C39A;
-  --accent-gold: #FFB703;
-  --warning-red: #E63946;
+  --success-green: #22C55E;
+  --accent-gold: #D7B88C;
+  --accent-bronze: #9A5E4D;
+  --warning-red: #EF4444;
 }
 
 @theme {
   --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-heading: var(--font-outfit), system-ui, sans-serif;
+  --font-heading: var(--font-cinzel), serif;
   
   --color-navy-dark: var(--navy-dark);
   --color-navy-card: var(--navy-card);
@@ -29,21 +30,22 @@
   --color-accent-cyan: var(--accent-cyan);
   --color-success-green: var(--success-green);
   --color-accent-gold: var(--accent-gold);
+  --color-accent-bronze: var(--accent-bronze);
   --color-warning-red: var(--warning-red);
 }
 
 /* Custom Utilities */
 .glass-panel {
-  background: rgba(11, 15, 25, 0.65);
+  background: rgba(30, 35, 40, 0.65);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel-glow {
-  background: rgba(17, 22, 37, 0.7);
+  background: rgba(30, 35, 40, 0.7);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(58, 134, 255, 0.15);
-  box-shadow: 0 0 20px 0 rgba(58, 134, 255, 0.08);
+  border: 1px solid rgba(215, 184, 140, 0.15); /* Gold tint */
+  box-shadow: 0 0 20px 0 rgba(215, 184, 140, 0.05);
 }
 
 .glow-blue {

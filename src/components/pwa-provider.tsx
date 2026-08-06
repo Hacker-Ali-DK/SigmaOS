@@ -66,14 +66,14 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
           </div>
           <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#4CC9F0] blur-sm animate-ping"></div>
         </div>
-        <h1 className="text-2xl font-bold tracking-wider font-heading bg-gradient-to-r from-white via-slate-300 to-[#3A86FF] bg-clip-text text-transparent animate-pulse">
+        <h1 className="text-2xl font-bold tracking-wider font-heading bg-gradient-to-r from-white via-slate-300 to-[#D7B88C] bg-clip-text text-transparent animate-pulse">
           Recovery+
         </h1>
         <p className="text-xs text-slate-500 mt-2 tracking-widest uppercase">
           AI Life Companion
         </p>
         <div className="w-20 h-[2px] bg-slate-800 rounded-full mt-6 overflow-hidden">
-          <div className="w-1/2 h-full bg-gradient-to-r from-[#3A86FF] to-[#4CC9F0] rounded-full animate-[loading_1.5s_infinite_ease-in-out]"></div>
+          <div className="w-1/2 h-full bg-gradient-to-r from-[#D7B88C] to-[#4CC9F0] rounded-full animate-[loading_1.5s_infinite_ease-in-out]"></div>
         </div>
         
         <style jsx global>{`
@@ -93,7 +93,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
         <div className="w-full max-w-md mx-auto flex flex-col gap-6">
           {/* Header */}
           <div className="text-center flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-900/30 flex items-center justify-center text-[#3A86FF] mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-900/30 flex items-center justify-center text-[#D7B88C] mb-3">
               <Sparkles className="w-7 h-7" />
             </div>
             <h1 className="text-xl font-bold font-heading text-slate-100">Setup Your Profile</h1>
@@ -113,7 +113,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200"
                 />
               </div>
               <div className="flex-[1]">
@@ -123,7 +123,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                   required
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                   required
                   value={currentWeight}
                   onChange={(e) => setCurrentWeight(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
                 />
               </div>
               <div className="flex-1">
@@ -149,7 +149,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                   required
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
                 />
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                 required
                 value={cleanStreak}
                 onChange={(e) => setCleanStreak(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
                 placeholder="e.g. 0 if starting today"
               />
             </div>
@@ -182,13 +182,13 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
                 required
                 value={sleepTarget}
                 onChange={(e) => setSleepTarget(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-900 focus:border-[#D7B88C] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#3A86FF] hover:bg-[#3A86FF]/95 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 cursor-pointer mt-2"
+              className="w-full py-3.5 bg-[#D7B88C] hover:bg-[#D7B88C]/95 text-[#0A0A0A] rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 cursor-pointer mt-2"
             >
               Start Journey
             </button>

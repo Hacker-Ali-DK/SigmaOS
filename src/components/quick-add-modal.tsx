@@ -173,106 +173,97 @@ export default function QuickAddModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-md transition-opacity">
+    <div className="fixed inset-0 z-50 flex items-end justify-center transition-opacity">
+      {/* Backdrop */}
       <div 
-        className="w-full max-w-md bg-[#0B0F19] rounded-t-3xl border-t border-slate-900 shadow-2xl overflow-hidden pb-safe animate-in slide-in-from-bottom duration-300"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900/50">
-          <h2 className="text-lg font-bold font-heading text-slate-100 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#3A86FF]" />
-            {activeSection === 'grid' && 'Quick Log'}
-            {activeSection === 'water' && 'Log Water'}
-            {activeSection === 'urge' && 'Log Urge / Relapse Check'}
-            {activeSection === 'sleep' && 'Log Sleep'}
-            {activeSection === 'meal' && 'Log Meal'}
-          </h2>
-          <button 
-            onClick={() => setShowAddModal(false)}
-            className="p-1 rounded-full bg-slate-900/50 text-slate-400 hover:text-white cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        className="absolute inset-0 bg-[#0A0A0A]/90 backdrop-blur-md z-[100]" 
+        onClick={() => setShowAddModal(false)}
+      />
+
+      {/* Modal Container */}
+      <div className="relative w-full max-w-sm mx-auto bg-[#0A0A0A] border border-[#1E2328] rounded-t-3xl sm:rounded-3xl shadow-2xl z-[101] overflow-hidden flex flex-col mt-auto sm:mt-10">
+        
+        {/* Header (Hidden when in grid to match the clean wheel design) */}
+        {activeSection !== 'grid' && (
+          <div className="flex items-center justify-between p-4 border-b border-[#1E2328]">
+            <button 
+              onClick={handleBack}
+              className="p-1 rounded-full bg-[#1E2328]/50 text-slate-400 hover:text-[#D7B88C] cursor-pointer"
+            >
+              <MinusCircle className="w-5 h-5" />
+            </button>
+            <h2 className="text-sm font-extrabold text-slate-200 uppercase tracking-widest font-heading">
+              Quick Add
+            </h2>
+            <button 
+              onClick={() => setShowAddModal(false)}
+              className="p-1 rounded-full bg-[#1E2328]/50 text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
 
         {/* Content body */}
         <div className="p-6 max-h-[70vh] overflow-y-auto no-scrollbar">
           {activeSection === 'grid' && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="relative w-[280px] h-[280px] mx-auto my-4">
+              {/* Center Cancel Button */}
               <button 
-                onClick={() => setActiveSection('water')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-cyan-950/20 border border-cyan-900/30 hover:border-cyan-500/30 transition-colors group cursor-pointer"
+                onClick={() => setShowAddModal(false)}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-[#0A0A0A] border border-[#1E2328] flex items-center justify-center text-slate-500 hover:text-[#D7B88C] transition-all cursor-pointer z-10 hover:scale-105 shadow-[0_0_30px_rgba(0,0,0,0.8)] hover:border-[#D7B88C]"
               >
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform mb-2">
-                  <Droplet className="w-5 h-5 fill-cyan-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Water</span>
+                <X className="w-8 h-8" />
               </button>
-
-              <button 
-                onClick={() => setActiveSection('sleep')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 hover:border-indigo-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform mb-2">
-                  <Moon className="w-5 h-5 fill-indigo-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Sleep</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('urge')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-rose-950/20 border border-rose-900/30 hover:border-rose-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform mb-2">
-                  <Shield className="w-5 h-5 fill-rose-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Urge</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('deen')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 hover:border-emerald-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform mb-2">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Prayer</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('meal')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-amber-950/20 border border-amber-900/30 hover:border-amber-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform mb-2">
-                  <Utensils className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Meal</span>
-              </button>
-
-              <div 
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/20 border border-slate-900/30 opacity-40"
-              >
-                <div className="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-400 mb-2">
-                  <Dumbbell className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-400 font-medium">Workout</span>
-              </div>
+              
+              {/* Wheel Items */}
+              {[
+                { id: 'water', label: 'Log Water', icon: Droplet, colorClass: 'text-[#2D5BFF]', bgClass: 'bg-[#2D5BFF]/10', borderClass: 'border-[#2D5BFF]/30 hover:border-[#2D5BFF]', onClick: () => setActiveSection('water') },
+                { id: 'sleep', label: 'Log Sleep', icon: Moon, colorClass: 'text-slate-300', bgClass: 'bg-slate-300/10', borderClass: 'border-slate-300/30 hover:border-slate-300', onClick: () => setActiveSection('sleep') },
+                { id: 'urge', label: 'Log Urge', icon: Shield, colorClass: 'text-[#9A5E4D]', bgClass: 'bg-[#9A5E4D]/10', borderClass: 'border-[#9A5E4D]/30 hover:border-[#9A5E4D]', onClick: () => setActiveSection('urge') },
+                { id: 'deen', label: 'Log Prayer', icon: BookOpen, colorClass: 'text-[#D7B88C]', bgClass: 'bg-[#D7B88C]/10', borderClass: 'border-[#D7B88C]/30 hover:border-[#D7B88C]', onClick: () => setActiveSection('deen') },
+                { id: 'meal', label: 'Log Meal', icon: Utensils, colorClass: 'text-orange-400', bgClass: 'bg-orange-400/10', borderClass: 'border-orange-400/30 hover:border-orange-400', onClick: () => setActiveSection('meal') },
+                { id: 'workout', label: 'Workout', icon: Dumbbell, colorClass: 'text-[#02C39A]', bgClass: 'bg-[#02C39A]/10', borderClass: 'border-[#02C39A]/30 hover:border-[#02C39A]', onClick: () => {} }
+              ].map((item, index) => {
+                const angle = (index * 60 - 90) * (Math.PI / 180);
+                const radius = 110;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                return (
+                  <button 
+                    key={item.id}
+                    onClick={item.onClick}
+                    style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                    className="absolute top-1/2 left-1/2 flex flex-col items-center justify-center gap-2 group transition-all duration-300 hover:scale-110 cursor-pointer"
+                  >
+                    <div className={cn("w-14 h-14 rounded-full bg-[#0A0A0A] border flex items-center justify-center shadow-lg transition-colors", item.colorClass, item.bgClass, item.borderClass)}>
+                       <item.icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{item.label}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
 
           {/* Water Panel */}
           {activeSection === 'water' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col items-center justify-center py-4 bg-[#2D5BFF]/5 rounded-3xl border border-[#2D5BFF]/10 mb-2">
+                <Droplet className="w-10 h-10 text-[#2D5BFF] mb-2 drop-shadow-[0_0_10px_rgba(45,91,255,0.5)]" />
+                <span className="text-[10px] text-[#2D5BFF] font-bold uppercase tracking-widest">Hydration</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
                 {['0.25', '0.5', '0.75', '1.0'].map((val) => (
                   <button
                     key={val}
                     onClick={() => setWaterAmount(val)}
                     className={cn(
-                      "flex-1 py-3 rounded-xl border font-medium text-sm transition-colors cursor-pointer",
+                      "py-4 rounded-2xl border font-bold text-sm transition-all cursor-pointer shadow-md",
                       waterAmount === val 
-                        ? "bg-[#3A86FF] border-[#3A86FF] text-white" 
-                        : "bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700"
+                        ? "bg-[#2D5BFF] border-[#2D5BFF] text-white shadow-lg shadow-[#2D5BFF]/20" 
+                        : "bg-[#0A0A0A] border-[#1E2328] text-slate-400 hover:border-slate-700 hover:text-slate-200"
                     )}
                   >
                     {val === '1.0' ? '1 Liter' : `${parseFloat(val) * 1000} ml`}
@@ -281,7 +272,7 @@ export default function QuickAddModal() {
               </div>
               <button 
                 onClick={logWater}
-                className="w-full py-4 mt-2 bg-[#3A86FF] hover:bg-[#3A86FF]/95 active:scale-98 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                className="w-full py-4 mt-2 bg-[#2D5BFF] hover:bg-[#2D5BFF]/90 active:scale-95 text-white rounded-2xl font-bold uppercase tracking-wider text-xs shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
               >
                 Log Drink
               </button>
@@ -302,10 +293,10 @@ export default function QuickAddModal() {
                       className={cn(
                         "flex-1 py-3 rounded-xl border text-sm font-semibold capitalize transition-all cursor-pointer",
                         urgeStrength === strength
-                          ? strength === 'low' ? 'bg-[#02C39A] border-[#02C39A] text-white'
-                            : strength === 'medium' ? 'bg-[#FFB703] border-[#FFB703] text-black'
+                          ? strength === 'low' ? 'bg-[#22C55E] border-[#22C55E] text-white'
+                            : strength === 'medium' ? 'bg-[#9A5E4D] border-[#9A5E4D] text-black'
                             : 'bg-[#E63946] border-[#E63946] text-white shadow-lg shadow-red-500/10'
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          : 'bg-[#1E2328] border-slate-800 text-slate-300 hover:border-slate-700'
                       )}
                     >
                       {strength}
@@ -327,8 +318,8 @@ export default function QuickAddModal() {
                         className={cn(
                           "px-3 py-1.5 rounded-full border text-xs font-medium transition-all cursor-pointer",
                           isSelected
-                            ? "bg-[#3A86FF]/10 border-[#3A86FF] text-[#3A86FF]"
-                            : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                            ? "bg-[#2D5BFF]/10 border-[#2D5BFF] text-[#2D5BFF]"
+                            : "bg-[#1E2328] border-slate-800 text-slate-400 hover:border-slate-700"
                         )}
                       >
                         {trigger}
@@ -347,8 +338,8 @@ export default function QuickAddModal() {
                     className={cn(
                       "flex-1 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
                       urgeOutcome === 'resisted'
-                        ? "bg-[#02C39A] border-[#02C39A] text-white shadow-lg shadow-emerald-500/10"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-[#22C55E] border-[#22C55E] text-white shadow-lg shadow-emerald-500/10"
+                        : "bg-[#1E2328] border-slate-800 text-slate-400 hover:border-slate-700"
                     )}
                   >
                     <CheckCircle2 className="w-4 h-4" />
@@ -361,7 +352,7 @@ export default function QuickAddModal() {
                       "flex-1 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
                       urgeOutcome === 'relapsed'
                         ? "bg-[#E63946] border-[#E63946] text-white shadow-lg shadow-red-500/10"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                        : "bg-[#1E2328] border-slate-800 text-slate-400 hover:border-slate-700"
                     )}
                   >
                     <XCircle className="w-4 h-4" />
@@ -376,7 +367,7 @@ export default function QuickAddModal() {
                   value={urgeNotes}
                   onChange={(e) => setUrgeNotes(e.target.value)}
                   placeholder="What led to this urge? How are you countering it?"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-sm text-slate-200 resize-none h-20 placeholder:text-slate-600"
+                  className="w-full px-4 py-3 rounded-xl bg-[#1E2328] border border-slate-800 focus:border-[#2D5BFF] focus:outline-none text-sm text-slate-200 resize-none h-20 placeholder:text-slate-600"
                 />
               </div>
 
@@ -385,7 +376,7 @@ export default function QuickAddModal() {
                 className={cn(
                   "w-full py-4 active:scale-98 text-white rounded-xl font-semibold shadow-lg transition-all cursor-pointer",
                   urgeOutcome === 'resisted'
-                    ? "bg-[#02C39A] hover:bg-[#02C39A]/95 shadow-emerald-500/20"
+                    ? "bg-[#22C55E] hover:bg-[#22C55E]/95 shadow-emerald-500/20"
                     : "bg-[#E63946] hover:bg-[#E63946]/95 shadow-red-500/20"
                 )}
               >
@@ -396,31 +387,36 @@ export default function QuickAddModal() {
 
           {/* Sleep Panel */}
           {activeSection === 'sleep' && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col items-center justify-center py-4 bg-slate-100/5 rounded-3xl border border-slate-100/10 mb-2">
+                <Moon className="w-10 h-10 text-slate-300 mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+                <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Sleep Recovery</span>
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Bedtime</label>
+                  <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Bedtime</label>
                   <input
                     type="time"
                     value={sleepBedtime}
                     onChange={(e) => setSleepBedtime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-bold"
+                    className="w-full px-4 py-4 rounded-2xl bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none text-slate-200 font-extrabold shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Wake-up Time</label>
+                  <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Wake-up Time</label>
                   <input
                     type="time"
                     value={sleepWakeup}
                     onChange={(e) => setSleepWakeup(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-bold"
+                    className="w-full px-4 py-4 rounded-2xl bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none text-slate-200 font-extrabold shadow-inner"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Sleep Quality</label>
-                <div className="flex gap-1 bg-slate-900 p-1 rounded-xl">
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Sleep Quality</label>
+                <div className="flex gap-2 bg-[#0A0A0A] border border-[#1E2328] p-1.5 rounded-2xl shadow-inner">
                   {['1', '2', '3', '4', '5'].map((rating) => {
                     const isSelected = sleepQualityRating === rating;
                     const labels = ['Very Poor', 'Poor', 'Average', 'Good', 'Excellent'];
@@ -431,8 +427,8 @@ export default function QuickAddModal() {
                         onClick={() => setSleepQualityRating(rating)}
                         title={labels[parseInt(rating) - 1]}
                         className={cn(
-                          "flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer",
-                          isSelected ? "bg-[#3A86FF] text-white shadow-sm" : "text-slate-500 hover:text-slate-300"
+                          "flex-1 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm",
+                          isSelected ? "bg-slate-300 text-[#0A0A0A] shadow-lg shadow-white/20" : "text-slate-500 hover:text-slate-300 bg-[#1E2328]"
                         )}
                       >
                         {rating}
@@ -440,41 +436,41 @@ export default function QuickAddModal() {
                     );
                   })}
                 </div>
-                <div className="flex justify-between px-1 mt-1.5 text-[10px] text-slate-500 font-bold uppercase">
+                <div className="flex justify-between px-2 mt-2 text-[8px] text-slate-500 font-bold uppercase tracking-widest">
                   <span>Very Poor</span>
                   <span>Excellent</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2 font-medium">Awakenings (Optional)</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Awakenings (Optional)</label>
                 <input
                   type="number"
                   min="0"
                   placeholder="Not Tracked"
                   value={sleepAwakenings}
                   onChange={(e) => setSleepAwakenings(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-slate-100 font-semibold"
+                  className="w-full px-4 py-3 rounded-2xl bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
 
               {/* Calculated duration feedback */}
-              <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Calculated Sleep Duration:</span>
-                <span className="text-indigo-400 font-extrabold text-sm">
-                  {calculateSleepDuration(sleepBedtime, sleepWakeup)} hours
+              <div className="p-4 rounded-2xl bg-[#0A0A0A] border border-[#1E2328] flex items-center justify-between shadow-md">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Est. Duration:</span>
+                <span className="text-slate-200 font-extrabold text-lg font-heading">
+                  {calculateSleepDuration(sleepBedtime, sleepWakeup)} <span className="text-[10px] text-slate-500 font-sans">hrs</span>
                 </span>
               </div>
 
               {calculateSleepDuration(sleepBedtime, sleepWakeup) > 16 && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400 leading-relaxed font-semibold">
-                  ⚠️ Note: This is an unusually long sleep duration (&gt;16 hours). Please verify your times.
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-500 font-bold uppercase tracking-wider text-center">
+                  ⚠️ Verify times: &gt;16 hours selected
                 </div>
               )}
 
               <button 
                 onClick={logSleep}
-                className="w-full py-4 mt-2 bg-[#3A86FF] hover:bg-[#3A86FF]/95 active:scale-98 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                className="w-full py-4 mt-2 bg-slate-300 hover:bg-slate-200 active:scale-95 text-[#0A0A0A] rounded-2xl font-extrabold uppercase tracking-widest text-[10px] shadow-lg shadow-white/10 transition-all cursor-pointer"
               >
                 Log Sleep Record
               </button>
@@ -484,7 +480,7 @@ export default function QuickAddModal() {
           {/* Meal Panel */}
           {activeSection === 'meal' && (
             <div className="flex flex-col gap-4">
-              <div className="flex gap-1.5 bg-slate-900 p-1 rounded-xl">
+              <div className="flex gap-1.5 bg-[#1E2328] p-1 rounded-xl">
                 {(['breakfast', 'lunch', 'snack', 'dinner'] as const).map((type) => (
                   <button
                     key={type}
@@ -492,7 +488,7 @@ export default function QuickAddModal() {
                     onClick={() => setMealType(type)}
                     className={cn(
                       "flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer",
-                      mealType === type ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm" : "text-slate-500 hover:text-slate-300"
+                      mealType === type ? "bg-[#0B0F19] text-[#2D5BFF] shadow-sm" : "text-slate-500 hover:text-slate-300"
                     )}
                   >
                     {type}
@@ -507,7 +503,7 @@ export default function QuickAddModal() {
                   placeholder="e.g. Oatmeal with bananas and honey"
                   value={mealName}
                   onChange={(e) => setMealName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-sm text-slate-100 placeholder:text-slate-600"
+                  className="w-full px-4 py-3 rounded-xl bg-[#1E2328] border border-slate-800 focus:border-[#2D5BFF] focus:outline-none text-sm text-slate-100 placeholder:text-slate-600"
                 />
               </div>
 
@@ -518,7 +514,7 @@ export default function QuickAddModal() {
                     type="number"
                     value={mealCalories}
                     onChange={(e) => setMealCalories(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-sm text-slate-100 font-bold"
+                    className="w-full px-4 py-3 rounded-xl bg-[#1E2328] border border-slate-800 focus:border-[#2D5BFF] focus:outline-none text-sm text-slate-100 font-bold"
                   />
                 </div>
                 <div className="flex-1">
@@ -527,7 +523,7 @@ export default function QuickAddModal() {
                     type="number"
                     value={mealProtein}
                     onChange={(e) => setMealProtein(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-[#3A86FF] focus:outline-none text-sm text-slate-100 font-bold"
+                    className="w-full px-4 py-3 rounded-xl bg-[#1E2328] border border-slate-800 focus:border-[#2D5BFF] focus:outline-none text-sm text-slate-100 font-bold"
                   />
                 </div>
               </div>
@@ -535,7 +531,7 @@ export default function QuickAddModal() {
               <button 
                 onClick={logMeal}
                 disabled={!mealName.trim()}
-                className="w-full py-4 mt-2 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none active:scale-98 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                className="w-full py-4 mt-2 bg-[#2D5BFF] hover:bg-[#2D5BFF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none active:scale-98 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
               >
                 Add Meal
               </button>
@@ -555,7 +551,7 @@ export default function QuickAddModal() {
                 const completedTime = detail?.completedTime;
 
                 return (
-                  <div key={field} className="p-3 bg-slate-900/60 border border-slate-800/60 rounded-2xl flex flex-col gap-2">
+                  <div key={field} className="p-3 bg-[#1E2328]/60 border border-slate-800/60 rounded-2xl flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-200 capitalize font-heading flex items-center gap-1.5">
                         {field}
@@ -602,7 +598,7 @@ export default function QuickAddModal() {
           {activeSection !== 'grid' && (
             <button 
               onClick={handleBack}
-              className="w-full text-center mt-4 text-xs text-[#3A86FF] font-medium hover:underline cursor-pointer"
+              className="w-full text-center mt-4 text-xs text-[#2D5BFF] font-medium hover:underline cursor-pointer"
             >
               Back to options
             </button>

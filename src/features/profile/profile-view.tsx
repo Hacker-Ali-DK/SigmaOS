@@ -305,39 +305,44 @@ export default function ProfileView() {
       {profileView === 'main' && (
         <>
           {/* Header Profile card */}
-          <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-[#0B0F19] to-slate-950 border border-slate-900/60 shadow-lg text-center relative overflow-hidden py-8">
-            <div className="w-20 h-20 rounded-full border border-slate-800 flex items-center justify-center bg-gradient-to-tr from-[#161B2B] to-[#252E4B] mb-4 shadow-xl">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3A86FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div className="relative w-full rounded-3xl overflow-hidden mt-2 bg-[#1E2328] shadow-2xl shadow-black/50 p-8 flex flex-col items-center justify-center text-center">
+            <div className="absolute inset-0 bg-[url('/images/dashboard-hero.png')] bg-cover bg-[center_top] bg-no-repeat opacity-40 mix-blend-luminosity"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-transparent"></div>
+            
+            <div className="relative z-10 w-24 h-24 rounded-full border border-slate-700/50 flex items-center justify-center bg-[#0A0A0A]/80 mb-4 shadow-xl backdrop-blur-sm">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D7B88C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <h2 className="text-xl font-extrabold text-white font-heading tracking-wide">
-              {profile?.name || 'Abdullah'}
+            <h2 className="relative z-10 text-2xl font-extrabold text-white font-heading tracking-[0.15em] uppercase">
+              {profile?.name || 'SIGMA'}
             </h2>
-            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Keep improving every day</p>
+            <p className="relative z-10 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2">
+              Keep improving every day
+            </p>
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-              <Flame className="w-5 h-5 text-orange-500 fill-orange-500/10" />
-              <span className="text-xs font-bold text-slate-200 mt-2">{dynamicStats?.streak ?? 0}</span>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Streak</span>
+          <div className="grid grid-cols-3 gap-3 mt-2">
+            <div className="bg-[#0A0A0A] border border-[#1E2328] p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-lg">
+              <Flame className="w-6 h-6 text-orange-500 mb-2" />
+              <span className="text-xl font-extrabold text-slate-200 font-heading">{dynamicStats?.streak ?? 0}</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Streak</span>
             </div>
 
-            <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-              <Shield className="w-5 h-5 text-[#02C39A] fill-emerald-500/10" />
-              <span className="text-xs font-bold text-slate-200 mt-2">{profile?.cleanStreak ?? 0}</span>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Clean Days</span>
+            <div className="bg-[#0A0A0A] border border-[#1E2328] p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-lg">
+              <Shield className="w-6 h-6 text-[#02C39A] mb-2" />
+              <span className="text-xl font-extrabold text-slate-200 font-heading">{profile?.cleanStreak ?? 0}</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Clean Days</span>
             </div>
 
-            <div className="bg-[#0B0F19]/60 border border-slate-900/60 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-              <Activity className="w-5 h-5 text-[#3A86FF]" />
-              <span className="text-xs font-bold text-slate-200 mt-2">{dynamicStats?.bestScore ?? 0}</span>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Best Score</span>
+            <div className="bg-[#0A0A0A] border border-[#1E2328] p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-lg">
+              <Activity className="w-6 h-6 text-[#D7B88C] mb-2" />
+              <span className="text-xl font-extrabold text-slate-200 font-heading">{dynamicStats?.bestScore ?? 0}</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Best Score</span>
             </div>
           </div>
 
           {/* Menu Items List */}
-          <div className="flex flex-col bg-[#0B0F19]/60 border border-slate-900/60 rounded-3xl overflow-hidden mt-2">
+          <div className="flex flex-col bg-[#0A0A0A] border border-[#1E2328] rounded-3xl overflow-hidden mt-4 shadow-lg">
             {[
               { label: 'My Journal', icon: BookOpen, action: () => setProfileView('journal') },
               { label: 'Weight Tracker', icon: Weight, action: () => setProfileView('weight') },
@@ -349,11 +354,11 @@ export default function ProfileView() {
                 <div 
                   key={idx}
                   onClick={menu.action}
-                  className="flex items-center justify-between px-5 py-4 hover:bg-slate-900/20 border-b border-slate-900/60 last:border-0 cursor-pointer transition-colors"
+                  className="flex items-center justify-between px-6 py-5 hover:bg-[#1E2328] border-b border-[#1E2328] last:border-0 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-3.5 text-slate-300">
-                    <Icon className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold">{menu.label}</span>
+                  <div className="flex items-center gap-4 text-slate-200">
+                    <Icon className="w-5 h-5 text-slate-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider">{menu.label}</span>
                   </div>
                   {!menu.isButton && <ChevronRight className="w-4 h-4 text-slate-600" />}
                 </div>
@@ -361,10 +366,10 @@ export default function ProfileView() {
             })}
             
             {/* Import Backup Menu wrapper */}
-            <label className="flex items-center justify-between px-5 py-4 hover:bg-slate-900/20 cursor-pointer transition-colors">
-              <div className="flex items-center gap-3.5 text-slate-300">
-                <Upload className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold">Import JSON Backup</span>
+            <label className="flex items-center justify-between px-6 py-5 hover:bg-[#1E2328] cursor-pointer transition-colors">
+              <div className="flex items-center gap-4 text-slate-200">
+                <Upload className="w-5 h-5 text-slate-400" />
+                <span className="text-xs font-bold uppercase tracking-wider">Import JSON Backup</span>
               </div>
               <input 
                 type="file" 
@@ -384,134 +389,134 @@ export default function ProfileView() {
             <button 
               type="button" 
               onClick={() => setProfileView('main')}
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+              className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-bold text-slate-200 font-heading">Settings</h1>
+            <h1 className="text-lg font-bold text-slate-200 font-heading tracking-widest uppercase">Settings</h1>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+          <div className="p-6 rounded-3xl flex flex-col gap-5 bg-[#0A0A0A] border border-[#1E2328] shadow-xl">
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Profile Name</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Profile Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Calorie Target (kcal)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Calorie Target (kcal)</label>
               <input
                 type="number"
                 value={calTarget}
                 onChange={(e) => setCalTarget(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Water Target (Liters)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Water Target (Liters)</label>
               <input
                 type="number"
                 step="0.1"
                 value={waterTarget}
                 onChange={(e) => setWaterTarget(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Sleep Target (Hours)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Sleep Target (Hours)</label>
               <input
                 type="number"
                 step="0.5"
                 value={sleepTarget}
                 onChange={(e) => setSleepTarget(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Screen Time Limit (Hours)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Screen Time Limit (Hours)</label>
               <input
                 type="number"
                 step="0.5"
                 value={screenTarget}
                 onChange={(e) => setScreenTarget(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
-            <hr className="border-slate-900/60 my-1" />
+            <hr className="border-[#1E2328] my-2" />
             
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-heading">Location Configurations</h3>
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest block font-heading">Location Configurations</h3>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">City</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">City</label>
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Country</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Country</label>
                 <input
                   type="text"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Latitude</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Latitude</label>
                 <input
                   type="text"
                   value={lat}
                   onChange={(e) => setLat(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Longitude</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Longitude</label>
                 <input
                   type="text"
                   value={lng}
                   onChange={(e) => setLng(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Timezone (IANA)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Timezone (IANA)</label>
               <input
                 type="text"
                 value={tz}
                 onChange={(e) => setTz(e.target.value)}
                 placeholder="e.g. Asia/Karachi"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-semibold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
 
-            <hr className="border-slate-900/60 my-1" />
+            <hr className="border-[#1E2328] my-2" />
 
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider block font-heading">Prayer & Deen Settings</h3>
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest block font-heading">Prayer & Deen Settings</h3>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Calculation Method</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Calculation Method</label>
               <select
                 value={prayerMethod}
                 onChange={(e) => setPrayerMethod(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner appearance-none"
               >
                 <option value="karachi">Karachi (University of Islamic Sciences)</option>
                 <option value="mwl">Muslim World League (MWL)</option>
@@ -521,11 +526,11 @@ export default function ProfileView() {
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Asr Jurisprudence</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Asr Jurisprudence</label>
               <select
                 value={asrMethod}
                 onChange={(e) => setAsrMethod(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner appearance-none"
               >
                 <option value="standard">Standard (Shafi'i, Maliki, Hanbali)</option>
                 <option value="hanafi">Hanafi</option>
@@ -533,16 +538,16 @@ export default function ProfileView() {
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Isha End-Time Policy</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Isha End-Time Policy</label>
               <select
                 value={ishaPolicy}
                 onChange={(e) => setIshaPolicy(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner appearance-none"
               >
                 <option value="midnight">Solar Midnight</option>
                 <option value="fajr">Next Fajr</option>
               </select>
-              <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">
+              <p className="text-[9px] text-slate-500 mt-2 leading-relaxed font-bold tracking-widest uppercase">
                 {ishaPolicy === 'midnight' 
                   ? "Solar Midnight: Isha prayer window ends at the midpoint between sunset and the next sunrise. (Habit tracking default)"
                   : "Next Fajr: Isha prayer window ends when the next day's Fajr begins."}
@@ -551,7 +556,7 @@ export default function ProfileView() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-4 mt-4 bg-[#D7B88C] hover:bg-[#D7B88C]/90 active:scale-95 text-[#0A0A0A] rounded-2xl text-[10px] uppercase tracking-widest font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#D7B88C]/20"
             >
               <Save className="w-4 h-4" />
               Save Settings
@@ -565,7 +570,7 @@ export default function ProfileView() {
                   window.location.reload();
                 }
               }}
-              className="w-full py-3 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+              className="w-full py-4 bg-rose-500/5 border border-rose-500/20 hover:bg-rose-500/10 active:scale-95 text-rose-500 rounded-2xl text-[10px] uppercase tracking-widest font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
             >
               Reset App Data
             </button>
@@ -579,26 +584,26 @@ export default function ProfileView() {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setProfileView('main')}
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+              className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-[#D7B88C] cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-bold text-slate-200 font-heading">My Journal</h1>
+            <h1 className="text-lg font-bold text-slate-200 font-heading tracking-widest uppercase">My Journal</h1>
           </div>
 
-          <form onSubmit={handleAddJournal} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 bg-[#0B0F19]/80 border-slate-800/50">
+          <form onSubmit={handleAddJournal} className="p-5 rounded-3xl flex flex-col gap-5 bg-[#0A0A0A] border border-[#1E2328] shadow-xl">
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold font-heading">Today's Entry</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Today's Entry</label>
               <textarea
                 value={journalText}
                 onChange={(e) => setJournalText(e.target.value)}
                 placeholder="How was your focus today? Document your challenges and wins..."
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 resize-none h-24 placeholder:text-slate-700 font-medium leading-relaxed"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 resize-none h-28 placeholder:text-slate-700 font-medium leading-relaxed shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Mood</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Mood</label>
               <div className="flex gap-2">
                 {['great', 'good', 'neutral', 'anxious'].map((m) => (
                   <button
@@ -606,10 +611,10 @@ export default function ProfileView() {
                     type="button"
                     onClick={() => setMood(m as any)}
                     className={cn(
-                      "flex-1 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all border cursor-pointer",
+                      "flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all border cursor-pointer",
                       mood === m 
-                        ? "bg-[#3A86FF] border-[#3A86FF] text-white" 
-                        : "bg-slate-950 border-slate-900 text-slate-500 hover:text-slate-300"
+                        ? "bg-[#D7B88C] border-[#D7B88C] text-[#0A0A0A] shadow-md shadow-[#D7B88C]/10" 
+                        : "bg-[#0A0A0A] border-[#1E2328] text-slate-500 hover:text-slate-300 shadow-inner"
                     )}
                   >
                     {m}
@@ -619,7 +624,7 @@ export default function ProfileView() {
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Daily Energy</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Daily Energy</label>
               <div className="flex gap-2">
                 {['low', 'medium', 'high'].map((eLevel) => (
                   <button
@@ -627,10 +632,10 @@ export default function ProfileView() {
                     type="button"
                     onClick={() => setEnergy(eLevel as any)}
                     className={cn(
-                      "flex-1 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all border cursor-pointer",
+                      "flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all border cursor-pointer",
                       energy === eLevel 
-                        ? "bg-[#3A86FF] border-[#3A86FF] text-white" 
-                        : "bg-slate-950 border-slate-900 text-slate-500 hover:text-slate-300"
+                        ? "bg-slate-200 border-slate-200 text-[#0A0A0A] shadow-md shadow-slate-200/10" 
+                        : "bg-[#0A0A0A] border-[#1E2328] text-slate-500 hover:text-slate-300 shadow-inner"
                     )}
                   >
                     {eLevel}
@@ -639,9 +644,9 @@ export default function ProfileView() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Recreational Screen (Hrs)</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Rec. Screen (Hrs)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -649,11 +654,11 @@ export default function ProfileView() {
                   max="24"
                   value={screenHours}
                   onChange={(e) => setScreenHours(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Productive Screen (Hrs)</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Prod. Screen (Hrs)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -661,7 +666,7 @@ export default function ProfileView() {
                   max="24"
                   value={productiveScreenHours}
                   onChange={(e) => setProductiveScreenHours(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                  className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
                 />
               </div>
             </div>
@@ -669,47 +674,47 @@ export default function ProfileView() {
             <button
               type="submit"
               disabled={!journalText.trim()}
-              className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-850 disabled:text-slate-650 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="w-full py-4 mt-2 bg-[#D7B88C] hover:bg-[#D7B88C]/90 active:scale-95 disabled:bg-[#1E2328] disabled:text-slate-600 disabled:cursor-not-allowed text-[#0A0A0A] rounded-2xl text-[10px] uppercase tracking-widest font-extrabold transition-all cursor-pointer shadow-lg shadow-[#D7B88C]/20"
             >
               Add Entry
             </button>
           </form>
 
           {/* Past entries list */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider ml-1">Past Entries</h3>
+          <div className="flex flex-col gap-4 mt-2">
+            <h3 className="text-[9px] text-slate-500 font-bold uppercase tracking-widest ml-1">Past Entries</h3>
             {journalLogs && journalLogs.length > 0 ? (
               journalLogs.map((log, idx) => (
-                <div key={idx} className="bg-[#0B0F19]/45 border border-slate-900/60 p-4 rounded-2xl flex flex-col gap-2">
+                <div key={idx} className="bg-[#0A0A0A] border border-[#1E2328] p-5 rounded-3xl flex flex-col gap-3 shadow-md">
                   <div className="flex items-center justify-between font-heading">
-                    <span className="text-[10px] text-[#3A86FF] font-extrabold">{formatEntryDate(log.date)}</span>
-                    <div className="flex gap-1.5 flex-wrap justify-end">
-                      <span className="text-[8px] bg-slate-950 border border-slate-900 text-slate-500 px-1.5 py-0.5 rounded-full font-bold capitalize">
+                    <span className="text-xs text-[#D7B88C] font-extrabold tracking-widest">{formatEntryDate(log.date)}</span>
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      <span className="text-[8px] bg-[#1E2328]/50 border border-[#1E2328] text-slate-400 px-2 py-1 rounded-md font-bold uppercase tracking-widest">
                         Mood: {log.mood}
                       </span>
                       {log.energy && (
-                        <span className="text-[8px] bg-slate-950 border border-slate-900 text-slate-500 px-1.5 py-0.5 rounded-full font-bold capitalize">
+                        <span className="text-[8px] bg-[#1E2328]/50 border border-[#1E2328] text-slate-400 px-2 py-1 rounded-md font-bold uppercase tracking-widest">
                           Energy: {log.energy}
                         </span>
                       )}
                       {log.screenHours !== undefined && (
-                        <span className="text-[8px] bg-slate-950 border border-slate-900 text-slate-500 px-1.5 py-0.5 rounded-full font-bold capitalize">
-                          Rec Screen: {log.screenHours}h
+                        <span className="text-[8px] bg-[#1E2328]/50 border border-[#1E2328] text-slate-400 px-2 py-1 rounded-md font-bold uppercase tracking-widest">
+                          Rec: {log.screenHours}h
                         </span>
                       )}
                       {log.productiveScreenHours !== undefined && log.productiveScreenHours > 0 && (
-                        <span className="text-[8px] bg-slate-950 border border-slate-900 text-slate-400 px-1.5 py-0.5 rounded-full font-bold capitalize">
-                          Prod Screen: {log.productiveScreenHours}h
+                        <span className="text-[8px] bg-[#1E2328]/50 border border-[#1E2328] text-slate-400 px-2 py-1 rounded-md font-bold uppercase tracking-widest">
+                          Prod: {log.productiveScreenHours}h
                         </span>
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">"{log.text}"</p>
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium italic mt-1 border-l-2 border-[#1E2328] pl-3">"{log.text}"</p>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-xs text-slate-650 font-semibold border border-dashed border-slate-900/60 rounded-2xl">
-                No entries saved yet. Start journaling to track your mental state.
+              <div className="text-center py-10 text-[10px] text-slate-500 font-bold uppercase tracking-widest border border-dashed border-[#1E2328] rounded-3xl bg-[#1E2328]/10">
+                No entries saved yet.
               </div>
             )}
           </div>
@@ -722,45 +727,45 @@ export default function ProfileView() {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setProfileView('main')}
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+              className="p-2 rounded-xl bg-[#1E2328]/40 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-[#D7B88C] cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-bold text-slate-200 font-heading">Weight Tracker</h1>
+            <h1 className="text-lg font-bold text-slate-200 font-heading tracking-widest uppercase">Weight Tracker</h1>
           </div>
 
-          <form onSubmit={handleAddWeight} className="glass-panel p-5 rounded-2xl flex items-center gap-3 bg-[#0B0F19]/80 border-slate-800/50">
+          <form onSubmit={handleAddWeight} className="p-5 rounded-3xl flex items-center gap-3 bg-[#0A0A0A] border border-[#1E2328] shadow-xl">
             <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1.5 font-bold">Log Current Weight (kg)</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-widest block mb-2 font-bold">Log Current Weight (kg)</label>
               <input
                 type="number"
                 step="0.1"
                 value={weightInput}
                 onChange={(e) => setWeightInput(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="w-full px-4 py-3 bg-[#0A0A0A] border border-[#1E2328] focus:border-slate-500 focus:outline-none rounded-2xl text-xs text-slate-200 font-extrabold shadow-inner"
               />
             </div>
             <button
               type="submit"
-              className="p-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 text-white rounded-xl text-xs font-bold transition-all cursor-pointer mt-5"
+              className="p-4 bg-[#D7B88C] hover:bg-[#D7B88C]/90 active:scale-95 text-[#0A0A0A] rounded-2xl text-[10px] uppercase tracking-widest font-extrabold transition-all cursor-pointer mt-5 shadow-lg shadow-[#D7B88C]/20"
             >
               Log
             </button>
           </form>
 
           {/* Weight history */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider ml-1">History</h3>
-            <div className="bg-[#0B0F19]/60 border border-slate-900/60 rounded-3xl overflow-hidden">
+          <div className="flex flex-col gap-4 mt-2">
+            <h3 className="text-[9px] text-slate-500 font-bold uppercase tracking-widest ml-1">History</h3>
+            <div className="bg-[#0A0A0A] border border-[#1E2328] rounded-3xl overflow-hidden shadow-md">
               {weightLogs && weightLogs.length > 0 ? (
                 weightLogs.map((log, idx) => (
-                  <div key={idx} className="flex items-center justify-between px-5 py-4 border-b border-slate-900/60 last:border-0 text-xs">
-                    <span className="text-slate-400 font-bold">{formatEntryDate(log.date)}</span>
-                    <span className="font-extrabold text-slate-200">{log.weight} kg</span>
+                  <div key={idx} className="flex items-center justify-between px-6 py-5 border-b border-[#1E2328] last:border-0 hover:bg-[#1E2328]/50 transition-colors">
+                    <span className="text-slate-400 font-bold text-xs tracking-wider">{formatEntryDate(log.date)}</span>
+                    <span className="text-lg font-extrabold text-slate-200 font-heading tracking-tight">{log.weight} <span className="text-[10px] text-slate-500 font-sans ml-0.5">kg</span></span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-xs text-slate-650 font-semibold border border-dashed border-slate-900/60 rounded-2xl">
+                <div className="text-center py-10 text-[10px] text-slate-500 font-bold uppercase tracking-widest border-dashed border-[#1E2328] bg-[#1E2328]/10">
                   No weight logs saved yet.
                 </div>
               )}
