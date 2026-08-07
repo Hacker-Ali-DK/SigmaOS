@@ -68,13 +68,13 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="btn-ghost"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -84,7 +84,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
         </div>
         <button 
           onClick={() => setShowAddForm(prev => !prev)}
-          className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          className="btn-ghost flex items-center gap-1.5 text-xs font-semibold"
         >
           <Plus className="w-3.5 h-3.5 text-[#3A86FF]" />
           Add Meal
@@ -97,7 +97,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           meals.map((meal) => (
             <div 
               key={meal.id} 
-              className="bg-[#0B0F19]/45 border border-slate-900/60 rounded-2xl p-4 flex items-center justify-between group hover:border-slate-800/80 transition-colors"
+              className="card-tertiary p-4 flex items-center justify-between group hover:border-slate-800/80 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
@@ -108,11 +108,11 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
                     <span className="text-xs font-extrabold text-slate-200 capitalize">
                       {meal.mealType}
                     </span>
-                    <span className="text-[8px] bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                    <span className="text-micro leading-none bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                       {meal.calories} kcal
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-medium">
+                  <span className="text-micro text-slate-400 font-medium">
                     {meal.description} • <span className="text-slate-500 font-bold">{meal.proteinGrams}g Protein</span>
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
 
       {/* Inline form */}
       {showAddForm && (
-        <form onSubmit={handleAddMeal} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-slate-800/50 bg-[#0B0F19]/80 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleAddMeal} className="card-tertiary flex flex-col gap-4 animate-in slide-in-from-top duration-300">
           <div className="flex gap-1.5 bg-slate-950 p-1 rounded-xl">
             {(['breakfast', 'lunch', 'snack', 'dinner'] as const).map((type) => (
               <button
@@ -152,33 +152,33 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Meal Description</label>
+            <label className="text-label text-slate-400 block mb-2">Meal Description</label>
             <input
               type="text"
               placeholder="e.g. Chicken Rice, Salad"
               value={mealName}
               onChange={(e) => setMealName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 placeholder:text-slate-700"
+              className="input-base placeholder:text-slate-700"
             />
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Calories (kcal)</label>
+              <label className="text-label text-slate-400 block mb-2">Calories (kcal)</label>
               <input
                 type="number"
                 value={mealCalories}
                 onChange={(e) => setMealCalories(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="input-base font-bold"
               />
             </div>
             <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Protein (g)</label>
+              <label className="text-label text-slate-400 block mb-2">Protein (g)</label>
               <input
                 type="number"
                 value={mealProtein}
                 onChange={(e) => setMealProtein(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="input-base font-bold"
               />
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
           <button
             type="submit"
             disabled={!mealName.trim()}
-            className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="btn-primary w-full text-xs cursor-pointer disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
           >
             Save Meal
           </button>
@@ -194,7 +194,7 @@ export default function NutritionView({ onBack }: NutritionViewProps) {
       )}
 
       {/* Target Macros progress bars */}
-      <div className="flex flex-col gap-4 bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl mt-2">
+      <div className="card-primary flex flex-col gap-4 mt-2">
         <h3 className="text-xs font-bold text-slate-200 font-heading uppercase tracking-wider">Macro Targets</h3>
 
         {/* Calories Progress */}

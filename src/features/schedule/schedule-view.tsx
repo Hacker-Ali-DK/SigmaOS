@@ -104,20 +104,20 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
   const isTodaySelected = selectedDate === getLocalDateString();
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
       {/* Date Header with Pagination */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {onBack && (
             <button 
               onClick={onBack}
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+              className="btn-ghost"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">
+            <span className="text-micro text-slate-500 font-extrabold uppercase tracking-wider">
               {isTodaySelected ? 'Today' : 'Timeline Date'}
             </span>
             <h1 className="text-lg font-bold text-slate-200 font-heading tracking-wide">
@@ -128,17 +128,17 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
         <div className="flex items-center gap-1.5">
           <button 
             onClick={handlePrevDay}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="btn-ghost"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button 
             onClick={handleNextDay}
-            className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+            className="btn-ghost"
           >
             <ChevronRightIcon className="w-4 h-4" />
           </button>
-          <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 cursor-pointer">
+          <div className="btn-ghost cursor-pointer">
             <Calendar className="w-4 h-4" />
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
                     )}>
                       {task.taskName}
                     </span>
-                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                    <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">
                       {task.timeLabel} • <span className={cn(isCompleted ? "text-[#02C39A]" : "text-slate-500")}>{statusText}</span>
                     </span>
                   </div>

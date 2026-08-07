@@ -173,92 +173,93 @@ export default function QuickAddModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-md transition-opacity">
-      <div 
-        className="w-full max-w-md bg-[#0B0F19] rounded-t-3xl border-t border-slate-900 shadow-2xl overflow-hidden pb-safe animate-in slide-in-from-bottom duration-300"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900/50">
-          <h2 className="text-lg font-bold font-heading text-slate-100 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#3A86FF]" />
-            {activeSection === 'grid' && 'Quick Log'}
-            {activeSection === 'water' && 'Log Water'}
-            {activeSection === 'urge' && 'Log Urge / Relapse Check'}
-            {activeSection === 'sleep' && 'Log Sleep'}
-            {activeSection === 'meal' && 'Log Meal'}
-          </h2>
-          <button 
-            onClick={() => setShowAddModal(false)}
-            className="p-1 rounded-full bg-slate-900/50 text-slate-400 hover:text-white cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes radial-spring {
+          0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+          100% { opacity: 1; transform: var(--target-transform) scale(1); }
+        }
+        .radial-item {
+          opacity: 0;
+          animation: radial-spring 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+      `}} />
 
-        {/* Content body */}
-        <div className="p-6 max-h-[70vh] overflow-y-auto no-scrollbar">
-          {activeSection === 'grid' && (
-            <div className="grid grid-cols-3 gap-4">
-              <button 
-                onClick={() => setActiveSection('water')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-cyan-950/20 border border-cyan-900/30 hover:border-cyan-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform mb-2">
-                  <Droplet className="w-5 h-5 fill-cyan-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Water</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('sleep')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 hover:border-indigo-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform mb-2">
-                  <Moon className="w-5 h-5 fill-indigo-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Sleep</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('urge')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-rose-950/20 border border-rose-900/30 hover:border-rose-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform mb-2">
-                  <Shield className="w-5 h-5 fill-rose-400/10" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Urge</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('deen')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 hover:border-emerald-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform mb-2">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Prayer</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveSection('meal')}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-amber-950/20 border border-amber-900/30 hover:border-amber-500/30 transition-colors group cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform mb-2">
-                  <Utensils className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-300 font-medium">Log Meal</span>
-              </button>
-
-              <div 
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/20 border border-slate-900/30 opacity-40"
-              >
-                <div className="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-400 mb-2">
-                  <Dumbbell className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-slate-400 font-medium">Workout</span>
+      {activeSection === 'grid' ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#03050C]/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowAddModal(false)}>
+          <div className="relative w-[320px] h-[320px] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {/* Center Anchor */}
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="absolute z-20 flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-[#1C2541] to-[#0B0F19] shadow-[0_0_20px_rgba(58,134,255,0.4)] active:scale-90 transition-all cursor-pointer border border-[#3A86FF]/50 hover:shadow-[0_0_30px_rgba(58,134,255,0.6)] hover:scale-105 p-[2px]"
+            >
+              <div className="relative w-full h-full rounded-full overflow-hidden bg-[#0B0F19] flex items-center justify-center shadow-inner">
+                <img 
+                  src="/images/blue-dragon-icon.png" 
+                  alt="Dragon" 
+                  className="w-full h-full object-contain scale-[1.8] opacity-90 relative z-0" 
+                />
               </div>
+            </button>
+            
+            {/* Radial Items */}
+            {[
+              { id: 'sleep', label: 'Sleep', icon: Moon, angle: 270, color: 'text-indigo-400', bg: 'bg-[#0B0F19]', border: 'border-indigo-500/40' },
+              { id: 'urge', label: 'Urge', icon: Shield, angle: 330, color: 'text-rose-400', bg: 'bg-[#0B0F19]', border: 'border-rose-500/40' },
+              { id: 'meal', label: 'Meal', icon: Utensils, angle: 30, color: 'text-amber-400', bg: 'bg-[#0B0F19]', border: 'border-amber-500/40' },
+              { id: 'workout', label: 'Workout', icon: Dumbbell, angle: 90, color: 'text-slate-400', bg: 'bg-[#0B0F19]', border: 'border-slate-500/40' },
+              { id: 'water', label: 'Water', icon: Droplet, angle: 150, color: 'text-cyan-400', bg: 'bg-[#0B0F19]', border: 'border-cyan-500/40' },
+              { id: 'deen', label: 'Prayer', icon: BookOpen, angle: 210, color: 'text-emerald-400', bg: 'bg-[#0B0F19]', border: 'border-emerald-500/40' },
+            ].map((item, index) => {
+              const radius = typeof window !== 'undefined' ? Math.min(120, window.innerWidth * 0.35) : 120;
+              const x = Math.cos(item.angle * Math.PI / 180) * radius;
+              const y = Math.sin(item.angle * Math.PI / 180) * radius;
+              const Icon = item.icon;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => item.id !== 'workout' && setActiveSection(item.id as any)}
+                  className="radial-item absolute flex flex-col items-center justify-center group z-10"
+                  style={{ 
+                    '--target-transform': `translate(${x}px, ${y}px)`,
+                    animationDelay: `${index * 60}ms`
+                  } as React.CSSProperties}
+                >
+                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border shadow-lg transition-transform group-hover:scale-110 bg-[#0B0F19]/80 backdrop-blur-md", item.border, item.color, item.id === 'workout' && "opacity-40")}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className={cn("absolute top-16 text-micro font-bold tracking-wider uppercase whitespace-nowrap transition-opacity drop-shadow-md", item.color, item.id === 'workout' ? "opacity-20" : "opacity-0 group-hover:opacity-100")}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-md transition-opacity">
+          <div className="w-full max-w-md bg-[#0B0F19] rounded-t-3xl border-t border-slate-900 shadow-2xl overflow-hidden pb-safe animate-in slide-in-from-bottom duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900/50">
+              <h2 className="text-lg font-bold font-heading text-slate-100 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#3A86FF]" />
+                {activeSection === 'water' && 'Log Water'}
+                {activeSection === 'urge' && 'Log Urge / Relapse Check'}
+                {activeSection === 'sleep' && 'Log Sleep'}
+                {activeSection === 'meal' && 'Log Meal'}
+                {activeSection === 'deen' && 'Log Prayer'}
+              </h2>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-full bg-slate-900/50 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          )}
+            
+            {/* Content body */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto no-scrollbar">
 
           {/* Water Panel */}
           {activeSection === 'water' && (
@@ -440,7 +441,7 @@ export default function QuickAddModal() {
                     );
                   })}
                 </div>
-                <div className="flex justify-between px-1 mt-1.5 text-[10px] text-slate-500 font-bold uppercase">
+                <div className="flex justify-between px-1 mt-1.5 text-micro text-slate-500 font-bold uppercase">
                   <span>Very Poor</span>
                   <span>Excellent</span>
                 </div>
@@ -467,7 +468,7 @@ export default function QuickAddModal() {
               </div>
 
               {calculateSleepDuration(sleepBedtime, sleepWakeup) > 16 && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400 leading-relaxed font-semibold">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-micro text-amber-400 leading-relaxed font-semibold">
                   ⚠️ Note: This is an unusually long sleep duration (&gt;16 hours). Please verify your times.
                 </div>
               )}
@@ -560,10 +561,10 @@ export default function QuickAddModal() {
                       <span className="text-xs font-bold text-slate-200 capitalize font-heading flex items-center gap-1.5">
                         {field}
                         {completedTime && (
-                          <span className="text-[10px] text-slate-400 font-normal font-mono">({completedTime})</span>
+                          <span className="text-micro text-slate-400 font-normal font-mono">({completedTime})</span>
                         )}
                       </span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize bg-slate-950 text-slate-400 border border-slate-800">
+                      <span className="text-micro font-semibold px-2 py-0.5 rounded-full capitalize bg-slate-950 text-slate-400 border border-slate-800">
                         {currentStatus.replace('_', ' ')}
                       </span>
                     </div>
@@ -582,7 +583,7 @@ export default function QuickAddModal() {
                             type="button"
                             onClick={() => handleSavePrayerStatus(field, item.status as DetailedPrayerStatus)}
                             className={cn(
-                              "py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer text-center",
+                              "py-1.5 rounded-xl text-micro font-bold border transition-all cursor-pointer text-center",
                               isSelected
                                 ? item.color + " ring-1 ring-white/20 font-extrabold"
                                 : "bg-slate-950/60 border-slate-900 text-slate-400 hover:text-slate-200"
@@ -599,16 +600,16 @@ export default function QuickAddModal() {
             </div>
           )}
 
-          {activeSection !== 'grid' && (
             <button 
               onClick={handleBack}
               className="w-full text-center mt-4 text-xs text-[#3A86FF] font-medium hover:underline cursor-pointer"
             >
               Back to options
             </button>
-          )}
+          </div>
         </div>
       </div>
-    </div>
+      )}
+    </>
   );
 }

@@ -9,6 +9,12 @@ import { dayBoundaryManager } from '@/lib/day-boundary-manager';
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
   const { isInitialized, showOnboarding, initializeDb, completeOnboarding } = useAppStore();
   const [swRegistered, setSwRegistered] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Onboarding local state
   const [name, setName] = useState('Abdullah');
@@ -55,33 +61,56 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
   };
 
   // Render Loader Splash if DB is boot loading
-  if (!isInitialized) {
+  if (!isInitialized || showSplash) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#03050C] text-white">
-        <div className="relative flex items-center justify-center mb-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#0B132B] to-[#1C2541] border border-slate-800 flex items-center justify-center shadow-2xl animate-pulse">
-            <svg width="48" height="48" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M256 140V372M140 256H372" stroke="#4CC9F0" strokeWidth="48" strokeLinecap="round" className="opacity-90"/>
-            </svg>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#03050C] animate-in fade-in duration-500 overflow-hidden">
+        {/* Subtle atmospheric glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(58,134,255,0.08)_0%,rgba(3,5,12,0)_60%)] pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col items-center flex-1 justify-center w-full max-w-md mx-auto -mt-10">
+          {/* Dragon Emblem */}
+          <div className="w-56 h-56 relative flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-both">
+            {/* Subtle glow behind the dragon */}
+            <div className="absolute inset-0 bg-[#3A86FF]/20 blur-[50px] rounded-full scale-50" />
+            <img 
+              src="/images/blue-dragon-icon.png" 
+              alt="RULER Dragon" 
+              className="w-full h-full object-contain scale-[1.7] relative z-10 drop-shadow-[0_0_12px_rgba(58,134,255,0.3)]"
+            />
           </div>
-          <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#4CC9F0] blur-sm animate-ping"></div>
+
+          {/* Branding Typography */}
+          <div className="flex flex-col items-center mt-4">
+            <h1 className="text-4xl font-black font-heading tracking-[0.25em] text-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-[400ms] fill-mode-both drop-shadow-md">
+              RULER
+            </h1>
+            <h2 className="text-[9px] font-bold tracking-[0.4em] text-slate-400 mt-3 uppercase animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-[700ms] fill-mode-both">
+              Personal Mastery System
+            </h2>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold tracking-wider font-heading bg-gradient-to-r from-white via-slate-300 to-[#3A86FF] bg-clip-text text-transparent animate-pulse">
-          Recovery+
-        </h1>
-        <p className="text-xs text-slate-500 mt-2 tracking-widest uppercase">
-          AI Life Companion
-        </p>
-        <div className="w-20 h-[2px] bg-slate-800 rounded-full mt-6 overflow-hidden">
-          <div className="w-1/2 h-full bg-gradient-to-r from-[#3A86FF] to-[#4CC9F0] rounded-full animate-[loading_1.5s_infinite_ease-in-out]"></div>
+
+        {/* Loading Indicator */}
+        <div className="absolute bottom-16 w-full max-w-xs mx-auto flex flex-col items-center gap-3 animate-in fade-in duration-1000 delay-[1000ms] fill-mode-both">
+          <span className="text-[9px] font-bold tracking-widest text-[#3A86FF] uppercase">
+            Initializing...
+          </span>
+          <div className="w-full h-0.5 bg-slate-900 rounded-full overflow-hidden shadow-inner relative">
+            <div className="absolute top-0 left-0 h-full bg-[#3A86FF] rounded-full shadow-[0_0_10px_rgba(58,134,255,0.8)] progress-bar-fill" />
+          </div>
         </div>
         
-        <style jsx global>{`
-          @keyframes loading {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes load-progress {
+            0% { width: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { width: 90%; opacity: 1; }
+            100% { width: 100%; opacity: 0; }
           }
-        `}</style>
+          .progress-bar-fill {
+            animation: load-progress 2.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+          }
+        `}} />
       </div>
     );
   }

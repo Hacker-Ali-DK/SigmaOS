@@ -33,6 +33,28 @@
 }
 
 /* Custom Utilities */
+@layer utilities {
+  .text-micro {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1rem;
+  }
+  
+  .text-label {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .text-metric {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 800;
+    font-family: var(--font-heading);
+    letter-spacing: -0.025em;
+  }
+}
+
 .glass-panel {
   background: rgba(11, 15, 25, 0.65);
   backdrop-filter: blur(12px);
@@ -52,6 +74,51 @@
 
 .glow-green {
   box-shadow: 0 0 15px 0 rgba(2, 195, 154, 0.2);
+}
+
+@layer components {
+  /* Surfaces & Cards */
+  .card-hero {
+    @apply bg-[#0B0F19]/65 backdrop-blur-[12px] border border-white/5 rounded-3xl bg-gradient-to-b from-indigo-950/20 via-[#0B0F19] to-slate-950 shadow-lg relative overflow-hidden;
+  }
+  
+  .card-primary {
+    @apply bg-[#0B0F19]/60 border border-slate-900/60 p-5 rounded-3xl;
+  }
+  
+  .card-secondary {
+    @apply bg-slate-950 border border-slate-900 p-4 rounded-2xl;
+  }
+  
+  .card-tertiary {
+    @apply bg-[#0B0F19]/80 border border-slate-800/50 p-3 rounded-2xl;
+  }
+  
+  .modal-surface {
+    @apply bg-[#0B0F19]/90 border-t border-slate-900 shadow-2xl rounded-t-3xl backdrop-blur-xl;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-[#3A86FF] hover:brightness-110 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-98 font-bold flex items-center justify-center;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-900 border border-slate-800 text-slate-300 hover:text-white rounded-xl transition-all flex items-center justify-center;
+  }
+
+  .btn-ghost {
+    @apply bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white rounded-xl transition-colors flex items-center justify-center p-2;
+  }
+  
+  .btn-destructive {
+    @apply bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl transition-all font-bold flex items-center justify-center;
+  }
+  
+  /* Inputs */
+  .input-base {
+    @apply w-full px-4 py-3 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-slate-200 transition-colors text-sm;
+  }
 }
 
 body {

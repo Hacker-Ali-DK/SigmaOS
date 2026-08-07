@@ -11,7 +11,7 @@ export default function NavigationBar() {
   const navItems = [
     { id: 'home', label: 'Home', icon: Home, isSpecial: false },
     { id: 'progress', label: 'Progress', icon: BarChart2, isSpecial: false },
-    { id: 'add', label: '', icon: Plus, isSpecial: true },
+    { id: 'add', label: '', icon: null, isSpecial: true },
     { id: 'profile', label: 'Profile', icon: User, isSpecial: false },
   ] as const;
 
@@ -26,11 +26,18 @@ export default function NavigationBar() {
               <button
                 key={item.id}
                 onClick={() => setShowAddModal(true)}
-                className="relative -translate-y-4 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-[#3A86FF] to-[#4CC9F0] text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-transform cursor-pointer border border-[#3A86FF]/30"
+                className="relative -translate-y-4 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-b from-[#1C2541] to-[#0B0F19] shadow-[0_0_15px_rgba(58,134,255,0.15)] active:scale-90 transition-all cursor-pointer border border-[#3A86FF]/30 hover:border-[#3A86FF]/60 hover:shadow-[0_0_20px_rgba(58,134,255,0.3)] hover:scale-105 group p-[2px]"
                 aria-label="Quick Log"
               >
-                <Plus className="w-6 h-6 stroke-[2.5]" />
-                <span className="absolute inset-0 rounded-full bg-white opacity-0 active:opacity-10 transition-opacity"></span>
+                <div className="relative w-full h-full rounded-full overflow-hidden bg-[#0B0F19] flex items-center justify-center shadow-inner">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#3A86FF]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+                  <img 
+                    src="/images/blue-dragon-icon.png" 
+                    alt="Dragon" 
+                    className="w-full h-full object-contain scale-[1.8] opacity-90 group-hover:opacity-100 transition-transform relative z-0" 
+                  />
+                </div>
+                <span className="absolute inset-0 rounded-full bg-white opacity-0 active:opacity-10 transition-opacity pointer-events-none z-20"></span>
               </button>
             );
           }
@@ -51,7 +58,7 @@ export default function NavigationBar() {
               />
               <span
                 className={cn(
-                  "text-[10px] mt-1 tracking-wide font-medium transition-colors",
+                  "text-micro mt-1 tracking-wide font-medium transition-colors",
                   isActive ? "text-[#3A86FF]" : "text-slate-500"
                 )}
               >

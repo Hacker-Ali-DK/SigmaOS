@@ -100,7 +100,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
   const renderedList = activeTab === 'active' ? activeGoals : completedGoals;
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
             <button 
               onClick={onBack}
               aria-label="Back"
-              className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+              className="btn-ghost"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -120,7 +120,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
         <button 
           onClick={() => setShowAddForm(prev => !prev)}
           aria-label="Add new goal"
-          className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 text-[#3A86FF] hover:text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          className="btn-ghost flex items-center gap-1.5 text-xs font-semibold text-[#3A86FF] hover:text-white"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Goal
@@ -153,7 +153,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
             return (
               <div 
                 key={g.id}
-                className="glass-panel rounded-2xl p-4 flex flex-col gap-3 bg-gradient-to-br from-[#0B0F19] to-[#111625] border border-slate-900/60 relative overflow-hidden"
+                className="card-tertiary p-4 flex flex-col gap-3 bg-gradient-to-br from-[#0B0F19] to-[#111625] relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs font-extrabold text-slate-100">{g.title}</span>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                      <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">
                         {g.category} • {g.unit}
                       </span>
                     </div>
@@ -184,7 +184,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                 {activeTab === 'active' && (
                   <div className="flex items-center justify-between bg-slate-950/60 border border-slate-900/80 p-2 rounded-xl mt-1">
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Progress:</span>
+                      <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">Progress:</span>
                       <span className="font-extrabold text-slate-100 text-xs">
                         {g.currentValue} / {g.targetValue} {g.unit}
                       </span>
@@ -233,14 +233,14 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
 
                 {/* Card Action Toolbar */}
                 <div className="flex items-center justify-between pt-1 border-t border-slate-900/40">
-                  <span className="text-[9px] text-slate-600 font-semibold">
+                  <span className="text-micro text-slate-600 font-semibold">
                     Added {new Date(g.createdAt || Date.now()).toLocaleDateString()}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleDelete(g.id)}
                       aria-label={`Delete ${g.title} goal`}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors flex items-center gap-1 text-[10px] font-semibold"
+                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors flex items-center gap-1 text-micro font-semibold"
                     >
                       <Trash2 className="w-3 h-3" />
                       Delete
@@ -249,7 +249,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                       <button
                         onClick={() => handleComplete(g.id)}
                         aria-label={`Mark ${g.title} goal complete`}
-                        className="p-1.5 rounded-lg bg-[#02C39A]/10 border border-[#02C39A]/30 text-[#02C39A] hover:bg-[#02C39A]/20 cursor-pointer transition-colors flex items-center gap-1 text-[10px] font-bold"
+                        className="p-1.5 rounded-lg bg-[#02C39A]/10 border border-[#02C39A]/30 text-[#02C39A] hover:bg-[#02C39A]/20 cursor-pointer transition-colors flex items-center gap-1 text-micro font-bold"
                       >
                         <Check className="w-3 h-3" />
                         Complete
@@ -269,42 +269,42 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
 
       {/* Inline Form */}
       {showAddForm && (
-        <form onSubmit={handleAddGoal} className="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-slate-800/50 bg-[#0B0F19]/80 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleAddGoal} className="card-tertiary flex flex-col gap-4 animate-in slide-in-from-top duration-300">
           <div>
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Goal Title</label>
+            <label className="text-label text-slate-400 block mb-2">Goal Title</label>
             <input
               type="text"
               placeholder="e.g. Read 12 Books"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200"
+              className="input-base"
             />
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Target Value</label>
+              <label className="text-label text-slate-400 block mb-2">Target Value</label>
               <input
                 type="number"
                 value={targetValue}
                 onChange={(e) => setTargetValue(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200 font-bold"
+                className="input-base font-bold"
               />
             </div>
             <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Unit</label>
+              <label className="text-label text-slate-400 block mb-2">Unit</label>
               <input
                 type="text"
                 placeholder="e.g. kg, %, Books"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-xs text-slate-200"
+                className="input-base"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-2 font-bold">Category</label>
+            <label className="text-label text-slate-400 block mb-2">Category</label>
             <div className="flex gap-1.5 bg-slate-950 p-1 rounded-xl">
               {(['health', 'deen', 'habits', 'career'] as const).map((cat) => (
                 <button
@@ -312,7 +312,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                   type="button"
                   onClick={() => setCategory(cat)}
                   className={cn(
-                    "flex-1 py-1.5 rounded-lg text-[10px] font-semibold capitalize transition-all cursor-pointer",
+                    "flex-1 py-1.5 rounded-lg text-micro font-semibold capitalize transition-all cursor-pointer",
                     category === cat ? "bg-[#0B0F19] text-[#3A86FF] shadow-sm" : "text-slate-500 hover:text-slate-300"
                   )}
                 >
@@ -325,7 +325,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
           <button
             type="submit"
             disabled={!title.trim()}
-            className="w-full py-3 bg-[#3A86FF] hover:bg-[#3A86FF]/95 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="btn-primary w-full text-xs cursor-pointer disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
           >
             Save Goal
           </button>
@@ -333,7 +333,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
       )}
 
       {/* Decorative Quote Mountain Vector Card */}
-      <div className="glass-panel rounded-3xl p-5 bg-gradient-to-br from-[#0B0F19] to-slate-950 border border-slate-900/60 flex flex-col gap-4 mt-2 relative overflow-hidden">
+      <div className="card-primary bg-gradient-to-br from-[#0B0F19] to-slate-950 flex flex-col gap-4 mt-2 relative overflow-hidden p-5">
         {/* Mountain SVG Vector Background */}
         <div className="absolute right-0 bottom-0 opacity-20 pointer-events-none select-none">
           <svg width="180" height="90" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -355,7 +355,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
 
         <div className="flex flex-col max-w-[70%]">
           <span className="text-xs font-extrabold text-slate-100 font-heading leading-snug">Discipline today.</span>
-          <span className="text-[10px] text-[#3A86FF] font-bold mt-0.5">Freedom tomorrow.</span>
+          <span className="text-micro text-[#3A86FF] font-bold mt-0.5">Freedom tomorrow.</span>
         </div>
       </div>
     </div>

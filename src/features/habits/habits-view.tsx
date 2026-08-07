@@ -201,12 +201,12 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
   ];
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="p-2 rounded-xl bg-slate-900/40 border border-slate-950 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+          className="btn-ghost"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
@@ -254,7 +254,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs font-extrabold text-slate-200">{habit.title}</span>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                      <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">
                         {habit.current} / {habit.target} {habit.unit}
                       </span>
                     </div>
@@ -271,13 +271,13 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                   <div className="flex items-center justify-end gap-2 mt-1">
                     <button
                       onClick={(e) => { e.stopPropagation(); (habit as any).onDecrement?.(); }}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-400 hover:text-white hover:border-slate-800 transition-colors cursor-pointer"
+                      className="btn-ghost p-1.5"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); (habit as any).onIncrement?.(); }}
-                      className="p-1.5 rounded-lg bg-slate-950/40 border border-slate-900 text-slate-400 hover:text-white hover:border-slate-800 transition-colors cursor-pointer"
+                      className="btn-ghost p-1.5"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -296,7 +296,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
             <div className="text-center py-10 text-xs text-slate-500 font-semibold">Computing stats…</div>
           ) : (
             <>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold text-center">
+              <p className="text-micro text-slate-500 uppercase tracking-wider font-bold text-center">
                 Last {daysForTab} days — completion summary
               </p>
               {[
@@ -367,7 +367,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-extrabold text-slate-200">{stat.title}</span>
-                          <span className="text-[10px] text-slate-500 font-semibold">{stat.detail}</span>
+                          <span className="text-micro text-slate-500 font-semibold">{stat.detail}</span>
                         </div>
                       </div>
                       <span className={cn("text-xs font-extrabold", stat.textColor)}>{pct}%</span>
@@ -378,7 +378,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-slate-500 font-bold">
+                    <span className="text-micro text-slate-500 font-bold">
                       {stat.id === 'dopamine'
                         ? `${stat.days} / ${stat.total} days streak`
                         : `${stat.days} / ${stat.total} days`}
