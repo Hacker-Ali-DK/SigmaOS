@@ -792,6 +792,7 @@ export async function calculateScoresForDate(dateStr: string): Promise<DailyScor
   if (wellness.status !== 'insufficient' && (wellness.status as string) !== 'untracked') activeScores.push(wellness.score);
   if (discipline.status !== 'insufficient' && (discipline.status as string) !== 'untracked') activeScores.push(discipline.score);
   if (deen.status !== 'insufficient' && (deen.status as string) !== 'untracked') activeScores.push(deen.score);
+  if (selfControl.score !== 'untracked') activeScores.push(selfControl.score as number);
 
   const overallAlignment = activeScores.length > 0 
     ? Math.round(activeScores.reduce((sum, s) => sum + s, 0) / activeScores.length)

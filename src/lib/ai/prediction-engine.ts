@@ -14,8 +14,10 @@ export async function generatePredictions(selectedDate: string): Promise<Predict
 
   // 1. Recovery Score Prediction (Exponential smoothing)
   const currentScores = await calculateScoresForDate(selectedDate);
-  // Uses deterministic scoring based on the day's alignment. Always available.
-  const recoveryScorePred = Math.min(100, Math.max(0, Math.round(currentScores.overallAlignment * 0.95 + 3)));
+  // Uses deterministic scoring based on the day's alignment. Only predict if data exists.
+  const recoveryScorePred = currentScores.overallAlignment > 0 
+    ? Math.min(100, Math.max(0, Math.round(currentScores.overallAlignment * 0.95 + 3)))
+    : null;
 
   // 2. Energy Prediction Curve (24-hour circadian curve)
   const todaySleep = await db.sleep.get(selectedDate);
@@ -55,7 +57,8 @@ export async function generatePredictions(selectedDate: string): Promise<Predict
   if (totalRoutines > 0) {
     const completedRoutines = routines.filter(r => r.date === selectedDate && r.completed).length;
     const routineRatio = completedRoutines / totalRoutines;
-    burnoutIndex = Math.min(100, Math.max(5, Math.round((1 - routineRatio) * 40 + ((todaySleep && todaySleep.totalHours < 6) ? 30 : 0) + 15)));
+    // Fix: higher routine ratio -> higher burnout. 
+    burnoutIndex = Math.min(100, Math.max(5, Math.round(routineRatio * 40 + ((todaySleep && todaySleep.totalHours < 6) ? 30 : 0) + 15)));
   }
 
   // 5. Sleep Quality Prediction (Upcoming night rating 1-5)
