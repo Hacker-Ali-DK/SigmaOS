@@ -441,9 +441,9 @@ export async function calculateWellnessScore(
     };
   }
 
-  const totalTrackedWeight = factors.reduce((sum, f) => sum + f.weight, 0);
+  // STRICT BASELINE: Always divide by 100 instead of totalTrackedWeight
   const weightedSum = factors.reduce((sum, f) => sum + (f.score * f.weight), 0);
-  const finalScore = Math.round(weightedSum / totalTrackedWeight);
+  const finalScore = Math.round(weightedSum / 100);
 
   let recommendation = "Keep tracking your daily routine, champion!";
   const lowestFactor = [...factors].sort((a, b) => a.score - b.score)[0];
@@ -596,9 +596,9 @@ export async function calculateDisciplineScore(
     };
   }
 
-  const totalTrackedWeight = factors.reduce((sum, f) => sum + f.weight, 0);
+  // STRICT BASELINE: Always divide by 100 instead of totalTrackedWeight
   const weightedSum = factors.reduce((sum, f) => sum + (f.score * f.weight), 0);
-  const finalScore = Math.round(weightedSum / totalTrackedWeight);
+  const finalScore = Math.round(weightedSum / 100);
 
   let recommendation = "Maintain discipline to lock down consistency!";
   const lowestFactor = [...factors].sort((a, b) => a.score - b.score)[0];
@@ -748,9 +748,9 @@ export async function calculateDeenScore(
     };
   }
 
-  const totalTrackedWeight = factors.reduce((sum, f) => sum + f.weight, 0);
+  // STRICT BASELINE: Always divide by 100 instead of totalTrackedWeight
   const weightedSum = factors.reduce((sum, f) => sum + (f.score * f.weight), 0);
-  const finalScore = Math.round(weightedSum / totalTrackedWeight);
+  const finalScore = Math.round(weightedSum / 100);
 
   let recommendation = "Prioritize daily prayers as peaceful anchors of your day.";
   const lowestFactor = [...factors].sort((a, b) => a.score - b.score)[0];

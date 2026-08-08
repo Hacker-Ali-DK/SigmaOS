@@ -8,7 +8,7 @@ The Deen score evaluates a user's spiritual consistency.
 `Base Weights: Prayers (60%) + Qur'an (25%) + Islamic Goals (15%)`
 
 ### Rules & Normalization
-- If a category is completely untracked, its weight is excluded, and the remaining weights are proportionally redistributed to equal 100%.
+- Strict baseline scoring applies (missing or untracked categories default to 0% and do not redistribute weights).
 - **Prayer Points:**
   - `prayed_on_time`: 1.0 (100%)
   - `prayed_late`: 0.5 (50%)
@@ -25,7 +25,7 @@ The Discipline score measures adherence to daily routines, learning, and self-co
 `Base Weights: Routines (40%) + Study/Learning (20%) + Reading (15%) + Screen Time (15%) + Goal Progress (10%)`
 
 ### Rules & Normalization
-- Dynamic weight redistribution applies.
+- Strict baseline scoring applies (missing or untracked categories default to 0% and do not redistribute weights).
 - **Routines:** Focuses on general tasks (excluding Deen tasks like prayers).
 - **Study/Learning:** Compares fulfilled hours vs required hours based on time labels.
 - **Screen Time:** Penalizes excessive recreational screen time over the daily limit.
@@ -38,7 +38,7 @@ Evaluates physiological health markers and emotional states.
 `Base Weights: Sleep (25%) + Nutrition (25%) + Hydration (20%) + Physical Activity/Workout (15%) + Mood (7.5%) + Energy (7.5%)`
 
 ### Rules
-- Dynamic weight redistribution applies. If only one activity (like a Workout) is tracked, it will become 100% of the score for that day.
+- Strict baseline scoring applies (missing or untracked categories default to 0% and do not redistribute weights). 
 - **Sleep Points:** 
   - Balances duration, awakenings, and quality score.
 - **Nutrition Points:**
