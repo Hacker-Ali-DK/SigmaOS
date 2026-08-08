@@ -5,10 +5,10 @@ The Deen score evaluates a user's spiritual consistency.
 **Source:** `src/lib/scoring/scoring-service.ts`
 
 ### Formula
-`Base Weights: Prayers (60%) + Qur'an (25%) + Deen Goals (15%)`
+`Base Weights: Prayers (60%) + Qur'an (25%) + Islamic Goals (15%)`
 
 ### Rules & Normalization
-- If a category is completely untracked (e.g. user hasn't logged any Deen goals), its weight is excluded, and the remaining weights are proportionally redistributed to equal 100%.
+- If a category is completely untracked, its weight is excluded, and the remaining weights are proportionally redistributed to equal 100%.
 - **Prayer Points:**
   - `prayed_on_time`: 1.0 (100%)
   - `prayed_late`: 0.5 (50%)
@@ -16,43 +16,46 @@ The Deen score evaluates a user's spiritual consistency.
   - `not_tracked`: Ignored from denominator.
 - **Qur'an Points:**
   - `(Qur'an Minutes / Target Minutes) * 100`, capped at 100.
-- **Clamping:** Final score is clamped between 10 and 100.
+- **Clamping:** Final score is clamped between 0 and 100.
 
 ## 2. Discipline Scoring
-The Discipline score measures adherence to daily routines and habits.
+The Discipline score measures adherence to daily routines, learning, and self-control.
 
 ### Formula
-`Base Weights: Routines (40%) + Water (20%) + Workout (20%) + Habits Goals (20%)`
+`Base Weights: Routines (40%) + Study/Learning (20%) + Reading (15%) + Screen Time (15%) + Goal Progress (10%)`
 
 ### Rules & Normalization
-- Functions exactly like Deen scoring with dynamic weight redistribution.
-- **Routine Points:** `(Completed Routines / Total Routines) * 100`
-- **Water/Workout Points:** `(Logged Amount / Target Amount) * 100`
+- Dynamic weight redistribution applies.
+- **Routines:** Focuses on general tasks (excluding Deen tasks like prayers).
+- **Study/Learning:** Compares fulfilled hours vs required hours based on time labels.
+- **Screen Time:** Penalizes excessive recreational screen time over the daily limit.
+- **Goal Progress:** Tracks active daily discipline commitments.
 
 ## 3. Wellness (Physical) Scoring
-Evaluates physiological health markers.
+Evaluates physiological health markers and emotional states.
 
 ### Formula
-`Base Weights: Sleep (60%) + Meals (20%) + Health Goals (20%)`
+`Base Weights: Sleep (25%) + Nutrition (25%) + Hydration (20%) + Physical Activity/Workout (15%) + Mood (7.5%) + Energy (7.5%)`
 
 ### Rules
+- Dynamic weight redistribution applies. If only one activity (like a Workout) is tracked, it will become 100% of the score for that day.
 - **Sleep Points:** 
-  - Max points achieved at user's `dailySleepTarget` (default 7.5 hours).
-  - Penalty curve applied for sleeping under 6 hours or over 9 hours.
-  - Quality Rating (1-5) acts as a multiplier (e.g., rating of 1 reduces score by 30%).
+  - Balances duration, awakenings, and quality score.
+- **Nutrition Points:**
+  - Calculates deviation from calorie target and assesses protein intake.
+- **Mood & Energy:**
+  - Derives scores from categorical journal inputs (e.g., 'great', 'anxious', 'high', 'low').
 
 ## 4. Overall Recovery Score (Alignment)
 The global ring displayed on the dashboard.
 
 ### Formula
-`Recovery Score = (Sleep * 0.30) + (Deen * 0.20) + (Dopamine * 0.15) + (Water * 0.10) + (Routines * 0.15) + (Nutrition * 0.10)`
+`Recovery Score = Average(Wellness, Discipline, Deen)`
 
 ### Rules
-- **Dopamine Points:** Based on `cleanStreak`.
-  - Day 0 (Relapse): 0 points
-  - Day 1-3: Linear ramp up to 50
-  - Day 7+: 100 points
-- **Zero-Floor Avoidance:** The absolute minimum score the UI will display is 10, to prevent demotivation, unless explicitly 0 data is entered for days.
+- The overall alignment is a strict mathematical average of the three main categories.
+- If a category is `insufficient` or `untracked`, it is entirely omitted from the average.
+- There is no longer a hardcoded zero-floor avoidance.
 
 ## 5. Offline Solar Prayer Calculations
 **Source:** `src/lib/deen/prayer-engine.ts`

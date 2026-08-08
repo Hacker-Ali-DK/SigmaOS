@@ -72,12 +72,17 @@ export async function generatePredictions(selectedDate: string): Promise<Predict
   let prayerConsistencyPred: Record<string, number> | null = null;
   if (prayerLogs.length >= 3) {
     const counts = { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+    const isOnTime = (val: any) => {
+      if (val === 'prayed_on_time' || val === true) return true;
+      if (typeof val === 'object' && val !== null && 'status' in val) return val.status === 'prayed_on_time';
+      return false;
+    };
     prayerLogs.forEach(p => {
-      if (p.fajr?.status === 'prayed_on_time') counts.fajr++;
-      if (p.dhuhr?.status === 'prayed_on_time') counts.dhuhr++;
-      if (p.asr?.status === 'prayed_on_time') counts.asr++;
-      if (p.maghrib?.status === 'prayed_on_time') counts.maghrib++;
-      if (p.isha?.status === 'prayed_on_time') counts.isha++;
+      if (isOnTime(p.fajr)) counts.fajr++;
+      if (isOnTime(p.dhuhr)) counts.dhuhr++;
+      if (isOnTime(p.asr)) counts.asr++;
+      if (isOnTime(p.maghrib)) counts.maghrib++;
+      if (isOnTime(p.isha)) counts.isha++;
     });
     prayerConsistencyPred = {
       fajr: Math.round((counts.fajr / prayerLogs.length) * 100),
