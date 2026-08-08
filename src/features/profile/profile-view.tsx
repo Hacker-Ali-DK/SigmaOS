@@ -337,7 +337,7 @@ export default function ProfileView() {
           </div>
 
           {/* Menu Items List */}
-          <div className="flex flex-col card-primary p-0 overflow-hidden mt-4">
+          <div className="flex flex-col card-primary p-0 overflow-hidden mt-4 md:max-w-2xl md:mx-auto w-full">
             {[
               { label: 'My Journal', icon: BookOpen, action: () => setProfileView('journal') },
               { label: 'Weight Tracker', icon: Weight, action: () => setProfileView('weight') },
@@ -379,7 +379,7 @@ export default function ProfileView() {
 
       {/* 2. Settings sub-view */}
       {profileView === 'settings' && (
-        <form onSubmit={handleSaveSettings} className="flex flex-col gap-4">
+        <form onSubmit={handleSaveSettings} className="flex flex-col gap-4 md:max-w-2xl md:mx-auto w-full">
           <div className="flex items-center gap-3">
             <button 
               type="button" 
@@ -575,7 +575,7 @@ export default function ProfileView() {
 
       {/* 3. Journal sub-view */}
       {profileView === 'journal' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 md:max-w-2xl md:mx-auto w-full">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setProfileView('main')}
@@ -718,7 +718,7 @@ export default function ProfileView() {
 
       {/* 4. Weight sub-view */}
       {profileView === 'weight' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 md:max-w-2xl md:mx-auto w-full">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setProfileView('main')}

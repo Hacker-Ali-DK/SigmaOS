@@ -233,7 +233,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
 
       {/* ── DAILY TAB ─────────────────────────────────────────────────── */}
       {activeTab === 'daily' && (
-        <div className="flex flex-col gap-4 mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
           {dailyHabitsList.map((habit) => {
             const percent = Math.min(100, Math.round((habit.current / habit.target) * 100));
             const Icon = habit.icon;
@@ -299,6 +299,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
               <p className="text-micro text-slate-500 uppercase tracking-wider font-bold text-center">
                 Last {daysForTab} days — completion summary
               </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
               {[
                 {
                   id: 'water', title: 'Drink Water',
@@ -386,6 +387,7 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
                   </div>
                 );
               })}
+              </div>
             </>
           )}
         </div>

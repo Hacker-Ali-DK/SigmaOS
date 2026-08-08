@@ -26,7 +26,7 @@ export default function AppShell() {
   return (
     <main className="relative flex-1 min-h-screen bg-[#03050C] text-slate-100 pb-20 select-none">
       {/* Dynamic Screen Area */}
-      <div className="w-full max-w-md mx-auto min-h-[80vh]">
+      <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto min-h-[80vh]">
         {currentTab === 'home' && (
           <>
             {homeSubView === 'dashboard' && (

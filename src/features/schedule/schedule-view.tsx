@@ -104,7 +104,7 @@ export default function ScheduleView({ onBack }: ScheduleViewProps) {
   const isTodaySelected = selectedDate === getLocalDateString();
 
   return (
-    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24 md:max-w-2xl md:mx-auto w-full">
       {/* Date Header with Pagination */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

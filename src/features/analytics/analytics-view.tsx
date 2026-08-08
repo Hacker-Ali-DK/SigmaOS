@@ -248,7 +248,7 @@ export default function AnalyticsView() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-6 pb-24">
+    <div className="flex flex-col gap-4 px-4 pt-6 pb-24 md:max-w-2xl md:mx-auto w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-slate-200 font-heading tracking-wide">

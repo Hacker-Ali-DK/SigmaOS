@@ -250,398 +250,406 @@ export default function DashboardView({
   ];
 
   return (
-    <div className="flex flex-col gap-6 px-4 pt-6 pb-24">
-      {/* Header Profile Info */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-400 font-medium">As-salamu Alaykum,</span>
-          <h1 className="text-xl font-extrabold text-white tracking-wide font-heading">
-            {profile?.name || 'Abdullah'} 👋
-          </h1>
-        </div>
-        <div className="relative btn-ghost cursor-pointer">
-          <Bell className="w-5 h-5 text-slate-400" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#3A86FF]"></span>
-        </div>
-      </div>
-
-      {/* Prayer Timeline Widget */}
-      {timelineData && (
-        <div className="glass-panel rounded-3xl p-5 bg-gradient-to-br from-[#0B0F19]/90 to-[#10172A]/90 border border-slate-900/60 flex flex-col gap-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <BookOpen className="w-4 h-4" />
-              </div>
-              <h2 className="text-sm font-bold text-white font-heading">Prayer Timeline</h2>
-            </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              {timelineData.activeInfo.activePrayer ? (
-                <span className="text-micro bg-cyan-950/40 border border-cyan-800/40 text-cyan-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                  Active: {timelineData.activeInfo.activePrayer}
-                </span>
-              ) : (
-                <span className="text-micro bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-semibold">
-                  Between Windows
-                </span>
-              )}
-              <span className="text-micro bg-blue-950/40 border border-blue-800/40 text-blue-300 px-2 py-0.5 rounded-full font-bold">
-                Next: {timelineData.activeInfo.nextPrayer} in {timelineData.activeInfo.countdownStr}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-2 mt-1">
-            {timelineData.items.map((item) => {
-              let stateBadge = null;
-              if (item.derivedState === 'prayed_on_time') {
-                stateBadge = <span className="text-[9px] text-emerald-400 font-extrabold tracking-tight">On Time</span>;
-              } else if (item.derivedState === 'prayed_late') {
-                stateBadge = <span className="text-[9px] text-amber-400 font-extrabold tracking-tight">Late</span>;
-              } else if (item.derivedState === 'missed') {
-                stateBadge = <span className="text-[9px] text-rose-400 font-extrabold tracking-tight">Missed</span>;
-              } else if (item.derivedState === 'pending') {
-                stateBadge = <span className="text-[9px] text-cyan-400 font-extrabold tracking-tight animate-pulse">Open</span>;
-              } else if (item.derivedState === 'window_expired') {
-                stateBadge = <span className="text-[9px] text-slate-500 font-bold tracking-tight">Expired</span>;
-              } else {
-                stateBadge = <span className="text-[9px] text-slate-600 font-medium tracking-tight">Upcoming</span>;
-              }
-
-              return (
-                <div 
-                  key={item.key} 
-                  onClick={() => handleCyclePrayerStatus(item.key, item.userStatus)}
-                  title="Click to cycle status: On Time -> Late -> Missed -> Untracked"
-                  className={cn(
-                    "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative cursor-pointer hover:border-slate-700 active:scale-95",
-                    item.isCurrentWindow 
-                      ? "bg-cyan-950/30 border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20" 
-                      : item.derivedState === 'prayed_on_time'
-                        ? "bg-emerald-950/20 border-emerald-900/30"
-                        : item.derivedState === 'prayed_late'
-                          ? "bg-amber-950/20 border-amber-900/30"
-                          : item.derivedState === 'window_expired'
-                            ? "bg-slate-950/40 border-slate-900/60 opacity-80"
-                            : "bg-slate-950/30 border-slate-900/40"
-                  )}
-                >
-                  <span className="text-micro font-bold text-slate-300 capitalize font-heading tracking-tight">{item.label}</span>
-                  <span className="text-xs font-black text-white mt-0.5 font-mono tracking-tight">{item.timeStr}</span>
-                  
-                  <div className="mt-1.5">
-                    {stateBadge}
-                  </div>
-
-                  {item.completedTime && (
-                    <span className="text-micro text-slate-400 font-mono mt-0.5 leading-none">✓ {item.completedTime}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Overall Alignment Circular Card */}
-      <div className="card-hero p-6 flex items-center justify-between">
-        {/* Left Side: Circular Ring */}
-        <div className="flex flex-col items-center flex-1">
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            {/* SVG Ring */}
-            <svg className="w-full h-full transform -rotate-90">
-              <circle
-                cx="56"
-                cy="56"
-                r={radius}
-                className="stroke-slate-900"
-                strokeWidth="8"
-                fill="transparent"
-              />
-              <circle
-                cx="56"
-                cy="56"
-                r={radius}
-                className="stroke-[#3A86FF] transition-all duration-1000 ease-out"
-                strokeWidth="8"
-                fill="transparent"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-3xl font-extrabold text-white tracking-tighter font-heading">
-                {overallAlignment}
-              </span>
-              <span className="text-micro text-slate-500 font-bold">/100</span>
-            </div>
-          </div>
-          <span className="text-xs text-slate-400 mt-2 font-semibold">Overall Alignment</span>
-          <span className="text-micro text-[#02C39A] font-bold mt-0.5">Keep going, champion!</span>
-        </div>
-
-        {/* Right Side: Streaks info */}
-        <div className="flex flex-col gap-4 flex-1 pl-4 border-l border-slate-800/40">
-          <button 
-            onClick={onNavigateToHabits}
-            className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
-          >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-400">
-              <Flame className="w-5 h-5 fill-orange-500/10" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">Recovery Streak</span>
-              <span className="text-sm font-extrabold text-slate-200">{profile?.cleanStreak ?? 0} days</span>
-            </div>
-          </button>
-
-          <button 
-            onClick={onNavigateToDopamine}
-            className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
-          >
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-[#02C39A]">
-              <Shield className="w-5 h-5 fill-emerald-500/10" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">Today's Self-Control</span>
-              <span className="text-sm font-extrabold text-slate-200">
-                {selfControlDetail.score === 'untracked' ? 'Not Tracked' : `${selfControlDetail.score}%`}
-              </span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Wellness, Discipline, Deen Sub-scores */}
-      <div className="flex flex-col gap-3">
-        {subScores.map((sub) => {
-          const isExpanded = expandedScore === sub.key;
-          const scoreVal = sub.data?.score ?? 60;
-          const status = sub.data?.status ?? 'untracked';
-          
-          return (
-            <div 
-              key={sub.key}
-              onClick={() => setExpandedScore(isExpanded ? null : sub.key)}
-              className={cn(
-                "rounded-2xl p-4 transition-all duration-300 cursor-pointer",
-                isExpanded ? "border border-slate-800 bg-slate-900/10" : "card-primary hover:border-slate-800/80"
-              )}
-            >
-              {/* Card Header Row */}
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{sub.title}</h3>
-                    <span className={cn(
-                      "text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide",
-                      status === 'completed' && "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-                      status === 'partial' && "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-                      (status === 'untracked' || status === 'insufficient') && "bg-slate-800 text-slate-500 border border-slate-700"
-                    )}>
-                      {status === 'insufficient' ? 'insufficient data' : status}
-                    </span>
-                  </div>
-                  {sub.data && sub.data.trackedCount !== undefined && status !== 'untracked' && status !== 'insufficient' && (
-                    <span className="text-micro text-slate-500 font-bold mt-1">
-                      Based on {sub.data.trackedCount} of {sub.data.totalCount} tracked areas
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {status === 'insufficient' || status === 'untracked' ? (
-                    <span className="text-sm font-extrabold font-heading text-slate-500">N/A</span>
-                  ) : (
-                    <>
-                      <span className={cn("text-metric", sub.colorClass)}>{scoreVal}</span>
-                      <span className="text-micro text-slate-500 font-bold">/100</span>
-                    </>
-                  )}
-                  <ChevronRight className={cn("w-3.5 h-3.5 text-slate-650 transition-transform duration-300", isExpanded && "transform rotate-90")} />
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden mt-3">
-                <div 
-                  className={cn("h-full rounded-full transition-all duration-500", sub.progressColor)}
-                  style={{ width: `${status === 'insufficient' || status === 'untracked' ? 0 : scoreVal}%` }}
-                />
-              </div>
-
-              {/* Short explanation preview when collapsed */}
-              {!isExpanded && sub.data?.recommendation && (
-                <p className="text-micro text-slate-500 font-medium mt-2.5 truncate">
-                  {sub.data.recommendation}
-                </p>
-              )}
-
-              {/* Expanded details */}
-              {isExpanded && (
-                <div className="flex flex-col gap-3 mt-4 pt-3 border-t border-slate-900/60 animate-in fade-in duration-200">
-                  {/* Positives */}
-                  {sub.data?.positives && sub.data.positives.length > 0 && (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-label text-slate-500">Positives</span>
-                      {sub.data.positives.map((pos, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
-                          <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
-                          <span>{pos}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Negatives */}
-                  {sub.data?.negatives && sub.data.negatives.length > 0 && (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-label text-slate-500 font-heading">Needs Attention</span>
-                      {sub.data.negatives.map((neg, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          <span>{neg}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Recommendation Callout */}
-                  {sub.data?.recommendation && (
-                    <div className="mt-1 p-2.5 rounded-xl bg-slate-950 border border-slate-900 text-xs leading-relaxed text-slate-400">
-                      <span className="font-bold text-slate-300 block mb-0.5 font-heading">Recommendation:</span>
-                      {sub.data.recommendation}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Today's Progress Section */}
-      <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-24 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+      
+      {/* ── LEFT COLUMN (Profile, Alignment, Subscores) ── */}
+      <div className="flex flex-col gap-6 lg:col-span-5">
+        {/* Header Profile Info */}
         <div className="flex items-center justify-between">
-          <h2 
-            onClick={onNavigateToSchedule}
-            className="text-sm font-extrabold text-slate-200 font-heading hover:text-[#3A86FF] transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            Today's Progress
-            <span className="text-micro text-slate-500 font-bold">(click to schedule)</span>
-          </h2>
-          <span className="text-xs text-slate-400 font-bold bg-[#111625] px-2 py-0.5 rounded-full border border-slate-900/60">
-            {completedCount}/{totalCount} Completed
-          </span>
+          <div className="flex flex-col">
+            <span className="text-xs text-slate-400 font-medium">As-salamu Alaykum,</span>
+            <h1 className="text-xl font-extrabold text-white tracking-wide font-heading">
+              {profile?.name || 'Abdullah'} 👋
+            </h1>
+          </div>
+          <div className="relative btn-ghost cursor-pointer">
+            <Bell className="w-5 h-5 text-slate-400" />
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#3A86FF]"></span>
+          </div>
         </div>
 
-        {/* Routine Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          {routines?.map((task) => {
-            const isCompleted = task.completed;
+        {/* Overall Alignment Circular Card */}
+        <div className="card-hero p-6 flex items-center justify-between">
+          {/* Left Side: Circular Ring */}
+          <div className="flex flex-col items-center flex-1">
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              {/* SVG Ring */}
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="56"
+                  cy="56"
+                  r={radius}
+                  className="stroke-slate-900"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                <circle
+                  cx="56"
+                  cy="56"
+                  r={radius}
+                  className="stroke-[#3A86FF] transition-all duration-1000 ease-out"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center">
+                <span className="text-3xl font-extrabold text-white tracking-tighter font-heading">
+                  {overallAlignment}
+                </span>
+                <span className="text-micro text-slate-500 font-bold">/100</span>
+              </div>
+            </div>
+            <span className="text-xs text-slate-400 mt-2 font-semibold">Overall Alignment</span>
+            <span className="text-micro text-[#02C39A] font-bold mt-0.5">Keep going, champion!</span>
+          </div>
+
+          {/* Right Side: Streaks info */}
+          <div className="flex flex-col gap-4 flex-1 pl-4 border-l border-slate-800/40">
+            <button 
+              onClick={onNavigateToHabits}
+              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
+            >
+              <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-400">
+                <Flame className="w-5 h-5 fill-orange-500/10" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">Recovery Streak</span>
+                <span className="text-sm font-extrabold text-slate-200">{profile?.cleanStreak ?? 0} days</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={onNavigateToDopamine}
+              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-[#02C39A]">
+                <Shield className="w-5 h-5 fill-emerald-500/10" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-micro text-slate-500 font-bold uppercase tracking-wider">Today's Self-Control</span>
+                <span className="text-sm font-extrabold text-slate-200">
+                  {selfControlDetail.score === 'untracked' ? 'Not Tracked' : `${selfControlDetail.score}%`}
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Wellness, Discipline, Deen Sub-scores */}
+        <div className="flex flex-col gap-3">
+          {subScores.map((sub) => {
+            const isExpanded = expandedScore === sub.key;
+            const scoreVal = sub.data?.score ?? 60;
+            const status = sub.data?.status ?? 'untracked';
             
             return (
-              <div
-                key={task.id}
-                onClick={() => {
-                  if (task.taskName === 'Sleep') onNavigateToSleep();
-                  else if (task.taskName === 'Meals' || task.taskName === 'Lunch' || task.taskName === 'Breakfast' || task.taskName === 'Dinner') onNavigateToNutrition();
-                  else if (task.taskName === 'Water') onNavigateToHabits();
-                  else if (task.taskName === 'Workout') onNavigateToHabits();
-                  else handleToggleRoutine(task);
-                }}
+              <div 
+                key={sub.key}
+                onClick={() => setExpandedScore(isExpanded ? null : sub.key)}
                 className={cn(
-                  "relative flex flex-col justify-between rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] group cursor-pointer overflow-hidden min-h-[96px]",
-                  isCompleted
-                    ? "bg-[#0B0F19]/45 border-[#3A86FF]/20 p-3"
-                    : "card-tertiary hover:border-slate-800"
+                  "rounded-2xl p-4 transition-all duration-300 cursor-pointer",
+                  isExpanded ? "border border-slate-800 bg-slate-900/10" : "card-primary hover:border-slate-800/80"
                 )}
               >
-                {/* Complete Overlay Glow */}
-                {isCompleted && (
-                  <div className="absolute inset-0 bg-[#3A86FF]/[0.02] pointer-events-none" />
-                )}
-
-                {/* Top Row: Task Name & Icon */}
-                <div className="flex items-start justify-between w-full">
-                  <span className="text-xs text-slate-300 font-bold tracking-tight line-clamp-1">
-                    {task.taskName}
-                  </span>
-                  <div className="opacity-80 group-hover:scale-105 transition-transform">
-                    {getIcon(task.taskName)}
+                {/* Card Header Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{sub.title}</h3>
+                      <span className={cn(
+                        "text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide",
+                        status === 'completed' && "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+                        status === 'partial' && "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+                        (status === 'untracked' || status === 'insufficient') && "bg-slate-800 text-slate-500 border border-slate-700"
+                      )}>
+                        {status === 'insufficient' ? 'insufficient data' : status}
+                      </span>
+                    </div>
+                    {sub.data && sub.data.trackedCount !== undefined && status !== 'untracked' && status !== 'insufficient' && (
+                      <span className="text-micro text-slate-500 font-bold mt-1">
+                        Based on {sub.data.trackedCount} of {sub.data.totalCount} tracked areas
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {status === 'insufficient' || status === 'untracked' ? (
+                      <span className="text-sm font-extrabold font-heading text-slate-500">N/A</span>
+                    ) : (
+                      <>
+                        <span className={cn("text-metric", sub.colorClass)}>{scoreVal}</span>
+                        <span className="text-micro text-slate-500 font-bold">/100</span>
+                      </>
+                    )}
+                    <ChevronRight className={cn("w-3.5 h-3.5 text-slate-650 transition-transform duration-300", isExpanded && "transform rotate-90")} />
                   </div>
                 </div>
 
-                {/* Bottom Row: Detail Value & Check Indicator */}
-                <div className="flex items-end justify-between w-full mt-2">
-                  <span className="text-micro text-slate-500 font-bold truncate pr-1">
-                    {task.timeLabel}
-                  </span>
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation(); // prevent card body redirect
-                      handleToggleRoutine(task);
-                    }}
-                    className={cn(
-                      "relative w-5 h-5 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer before:absolute before:-inset-2.5",
-                      isCompleted 
-                        ? "bg-[#02C39A] border-[#02C39A] text-slate-950 scale-105" 
-                        : "border-slate-800 bg-slate-950/20"
-                    )}
-                  >
-                    {isCompleted && <Check className="w-3 h-3 stroke-[3]" />}
-                  </button>
+                {/* Progress Bar */}
+                <div className="w-full h-1.5 bg-slate-950/60 rounded-full overflow-hidden mt-3">
+                  <div 
+                    className={cn("h-full rounded-full transition-all duration-500", sub.progressColor)}
+                    style={{ width: `${status === 'insufficient' || status === 'untracked' ? 0 : scoreVal}%` }}
+                  />
                 </div>
+
+                {/* Short explanation preview when collapsed */}
+                {!isExpanded && sub.data?.recommendation && (
+                  <p className="text-micro text-slate-500 font-medium mt-2.5 truncate">
+                    {sub.data.recommendation}
+                  </p>
+                )}
+
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div className="flex flex-col gap-3 mt-4 pt-3 border-t border-slate-900/60 animate-in fade-in duration-200">
+                    {/* Positives */}
+                    {sub.data?.positives && sub.data.positives.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-label text-slate-500">Positives</span>
+                        {sub.data.positives.map((pos, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
+                            <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                            <span>{pos}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Negatives */}
+                    {sub.data?.negatives && sub.data.negatives.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-label text-slate-500 font-heading">Needs Attention</span>
+                        {sub.data.negatives.map((neg, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span>{neg}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Recommendation Callout */}
+                    {sub.data?.recommendation && (
+                      <div className="mt-1 p-2.5 rounded-xl bg-slate-950 border border-slate-900 text-xs leading-relaxed text-slate-400">
+                        <span className="font-bold text-slate-300 block mb-0.5 font-heading">Recommendation:</span>
+                        {sub.data.recommendation}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Today's Goals Card Preview */}
-      <div 
-        onClick={onNavigateToGoals}
-        className="card-secondary flex items-center justify-between hover:border-slate-800 transition-colors cursor-pointer"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-[#3A86FF]">
-            <Target className="w-4.5 h-4.5" />
+      {/* ── RIGHT COLUMN (Timeline, Routines, Goals, Relapse) ── */}
+      <div className="flex flex-col gap-6 lg:col-span-7">
+        
+        {/* Prayer Timeline Widget */}
+        {timelineData && (
+          <div className="glass-panel rounded-3xl p-5 bg-gradient-to-br from-[#0B0F19]/90 to-[#10172A]/90 border border-slate-900/60 flex flex-col gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <h2 className="text-sm font-bold text-white font-heading">Prayer Timeline</h2>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {timelineData.activeInfo.activePrayer ? (
+                  <span className="text-micro bg-cyan-950/40 border border-cyan-800/40 text-cyan-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Active: {timelineData.activeInfo.activePrayer}
+                  </span>
+                ) : (
+                  <span className="text-micro bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-semibold">
+                    Between Windows
+                  </span>
+                )}
+                <span className="text-micro bg-blue-950/40 border border-blue-800/40 text-blue-300 px-2 py-0.5 rounded-full font-bold">
+                  Next: {timelineData.activeInfo.nextPrayer} in {timelineData.activeInfo.countdownStr}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2 mt-1">
+              {timelineData.items.map((item) => {
+                let stateBadge = null;
+                if (item.derivedState === 'prayed_on_time') {
+                  stateBadge = <span className="text-[9px] text-emerald-400 font-extrabold tracking-tight">On Time</span>;
+                } else if (item.derivedState === 'prayed_late') {
+                  stateBadge = <span className="text-[9px] text-amber-400 font-extrabold tracking-tight">Late</span>;
+                } else if (item.derivedState === 'missed') {
+                  stateBadge = <span className="text-[9px] text-rose-400 font-extrabold tracking-tight">Missed</span>;
+                } else if (item.derivedState === 'pending') {
+                  stateBadge = <span className="text-[9px] text-cyan-400 font-extrabold tracking-tight animate-pulse">Open</span>;
+                } else if (item.derivedState === 'window_expired') {
+                  stateBadge = <span className="text-[9px] text-slate-500 font-bold tracking-tight">Expired</span>;
+                } else {
+                  stateBadge = <span className="text-[9px] text-slate-600 font-medium tracking-tight">Upcoming</span>;
+                }
+
+                return (
+                  <div 
+                    key={item.key} 
+                    onClick={() => handleCyclePrayerStatus(item.key, item.userStatus)}
+                    title="Click to cycle status: On Time -> Late -> Missed -> Untracked"
+                    className={cn(
+                      "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative cursor-pointer hover:border-slate-700 active:scale-95",
+                      item.isCurrentWindow 
+                        ? "bg-cyan-950/30 border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20" 
+                        : item.derivedState === 'prayed_on_time'
+                          ? "bg-emerald-950/20 border-emerald-900/30"
+                          : item.derivedState === 'prayed_late'
+                            ? "bg-amber-950/20 border-amber-900/30"
+                            : item.derivedState === 'window_expired'
+                              ? "bg-slate-950/40 border-slate-900/60 opacity-80"
+                              : "bg-slate-950/30 border-slate-900/40"
+                    )}
+                  >
+                    <span className="text-micro font-bold text-slate-300 capitalize font-heading tracking-tight">{item.label}</span>
+                    <span className="text-xs font-black text-white mt-0.5 font-mono tracking-tight">{item.timeStr}</span>
+                    
+                    <div className="mt-1.5">
+                      {stateBadge}
+                    </div>
+
+                    {item.completedTime && (
+                      <span className="text-micro text-slate-400 font-mono mt-0.5 leading-none">✓ {item.completedTime}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-extrabold text-slate-100">Today's Goals</span>
-            <span className="text-micro text-slate-500 font-bold leading-tight">
-              {activeGoals && activeGoals.length > 0
-                ? `${activeGoals.length} active • ${activeGoals.slice(0, 2).map(g => g.title).join(', ')}${activeGoals.length > 2 ? '...' : ''}`
-                : 'No active goals — tap to add one'}
+        )}
+
+        {/* Today's Progress Section */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 
+              onClick={onNavigateToSchedule}
+              className="text-sm font-extrabold text-slate-200 font-heading hover:text-[#3A86FF] transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              Today's Progress
+              <span className="text-micro text-slate-500 font-bold">(click to schedule)</span>
+            </h2>
+            <span className="text-xs text-slate-400 font-bold bg-[#111625] px-2 py-0.5 rounded-full border border-slate-900/60">
+              {completedCount}/{totalCount} Completed
             </span>
           </div>
-        </div>
-        <ChevronRight className="w-4 h-4 text-slate-600" />
-      </div>
 
-      {/* Relapse/Shield Check Banner */}
-      {showRelapseBanner && (
-        <div className="glass-panel-glow rounded-2xl p-4 flex items-center justify-between bg-gradient-to-r from-emerald-950/20 via-[#0B0F19] to-slate-950 border border-emerald-500/10">
+          {/* Routine Grid */}
+          <div className="grid grid-cols-3 xl:grid-cols-4 gap-3">
+            {routines?.map((task) => {
+              const isCompleted = task.completed;
+              
+              return (
+                <div
+                  key={task.id}
+                  onClick={() => {
+                    if (task.taskName === 'Sleep') onNavigateToSleep();
+                    else if (task.taskName === 'Meals' || task.taskName === 'Lunch' || task.taskName === 'Breakfast' || task.taskName === 'Dinner') onNavigateToNutrition();
+                    else if (task.taskName === 'Water') onNavigateToHabits();
+                    else if (task.taskName === 'Workout') onNavigateToHabits();
+                    else handleToggleRoutine(task);
+                  }}
+                  className={cn(
+                    "relative flex flex-col justify-between rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] group cursor-pointer overflow-hidden min-h-[96px]",
+                    isCompleted
+                      ? "bg-[#0B0F19]/45 border-[#3A86FF]/20 p-3"
+                      : "card-tertiary hover:border-slate-800"
+                  )}
+                >
+                  {/* Complete Overlay Glow */}
+                  {isCompleted && (
+                    <div className="absolute inset-0 bg-[#3A86FF]/[0.02] pointer-events-none" />
+                  )}
+
+                  {/* Top Row: Task Name & Icon */}
+                  <div className="flex items-start justify-between w-full">
+                    <span className="text-xs text-slate-300 font-bold tracking-tight line-clamp-1">
+                      {task.taskName}
+                    </span>
+                    <div className="opacity-80 group-hover:scale-105 transition-transform">
+                      {getIcon(task.taskName)}
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Detail Value & Check Indicator */}
+                  <div className="flex items-end justify-between w-full mt-2">
+                    <span className="text-micro text-slate-500 font-bold truncate pr-1">
+                      {task.timeLabel}
+                    </span>
+                    
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent card body redirect
+                        handleToggleRoutine(task);
+                      }}
+                      className={cn(
+                        "relative w-5 h-5 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer before:absolute before:-inset-2.5",
+                        isCompleted 
+                          ? "bg-[#02C39A] border-[#02C39A] text-slate-950 scale-105" 
+                          : "border-slate-800 bg-slate-950/20"
+                      )}
+                    >
+                      {isCompleted && <Check className="w-3 h-3 stroke-[3]" />}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Today's Goals Card Preview */}
+        <div 
+          onClick={onNavigateToGoals}
+          className="card-secondary flex items-center justify-between hover:border-slate-800 transition-colors cursor-pointer"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#02C39A]/10 flex items-center justify-center text-[#02C39A]">
-              <Check className="w-4 h-4 stroke-[3]" />
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-[#3A86FF]">
+              <Target className="w-4.5 h-4.5" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-extrabold text-slate-100">No Relapse Today</span>
-              <span className="text-micro text-slate-500 font-bold">Alhamdulillah! Clean day saved.</span>
+              <span className="text-xs font-extrabold text-slate-100">Today's Goals</span>
+              <span className="text-micro text-slate-500 font-bold leading-tight">
+                {activeGoals && activeGoals.length > 0
+                  ? `${activeGoals.length} active • ${activeGoals.slice(0, 2).map(g => g.title).join(', ')}${activeGoals.length > 2 ? '...' : ''}`
+                  : 'No active goals — tap to add one'}
+              </span>
             </div>
           </div>
-          <button 
-            onClick={() => setShowRelapseBanner(false)}
-            className="p-1 rounded-full bg-slate-900/50 text-slate-500 hover:text-slate-200 cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <ChevronRight className="w-4 h-4 text-slate-600" />
         </div>
-      )}
+
+        {/* Relapse/Shield Check Banner */}
+        {showRelapseBanner && (
+          <div className="glass-panel-glow rounded-2xl p-4 flex items-center justify-between bg-gradient-to-r from-emerald-950/20 via-[#0B0F19] to-slate-950 border border-emerald-500/10">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#02C39A]/10 flex items-center justify-center text-[#02C39A]">
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-extrabold text-slate-100">No Relapse Today</span>
+                <span className="text-micro text-slate-500 font-bold">Alhamdulillah! Clean day saved.</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowRelapseBanner(false)}
+              className="p-1 rounded-full bg-slate-900/50 text-slate-500 hover:text-slate-200 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

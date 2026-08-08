@@ -146,7 +146,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
       </div>
 
       {/* Goals list */}
-      <div className="flex flex-col gap-3 mt-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
         {renderedList.length > 0 ? (
           renderedList.map((g) => {
             const percent = Math.min(100, Math.round((g.currentValue / g.targetValue) * 100));
@@ -269,7 +269,7 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
 
       {/* Inline Form */}
       {showAddForm && (
-        <form onSubmit={handleAddGoal} className="card-tertiary flex flex-col gap-4 animate-in slide-in-from-top duration-300">
+        <form onSubmit={handleAddGoal} className="card-tertiary flex flex-col gap-4 animate-in slide-in-from-top duration-300 md:max-w-2xl md:mx-auto w-full">
           <div>
             <label className="text-label text-slate-400 block mb-2">Goal Title</label>
             <input
