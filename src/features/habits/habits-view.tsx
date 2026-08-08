@@ -241,9 +241,15 @@ export default function HabitsView({ onBack, onNavigateToDopamine }: HabitsViewP
               <div
                 key={habit.id}
                 onClick={(habit as any).onClick}
+                tabIndex={(habit as any).isLink ? 0 : undefined}
+                onKeyDown={(e) => {
+                  if ((habit as any).isLink && (e.key === 'Enter' || e.key === ' ')) {
+                    (habit as any).onClick?.();
+                  }
+                }}
                 className={cn(
                   "glass-panel rounded-2xl p-4 flex flex-col gap-3 transition-colors border",
-                  (habit as any).isLink && "cursor-pointer hover:border-slate-800",
+                  (habit as any).isLink && "cursor-pointer hover:border-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                   habit.bgColor
                 )}
               >

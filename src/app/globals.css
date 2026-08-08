@@ -100,24 +100,24 @@
 
   /* Buttons */
   .btn-primary {
-    @apply bg-[#3A86FF] hover:brightness-110 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-98 font-bold flex items-center justify-center;
+    @apply bg-[#3A86FF] hover:brightness-110 text-white rounded-xl shadow-lg shadow-blue-500/20 transition duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 font-bold flex items-center justify-center;
   }
 
   .btn-secondary {
-    @apply bg-slate-900 border border-slate-800 text-slate-300 hover:text-white rounded-xl transition-all flex items-center justify-center;
+    @apply bg-slate-900 border border-slate-800 text-slate-300 hover:text-white rounded-xl transition duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 flex items-center justify-center;
   }
 
   .btn-ghost {
-    @apply bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white rounded-xl transition-colors flex items-center justify-center p-2;
+    @apply bg-slate-900/40 border border-slate-950 text-slate-400 hover:text-white hover:bg-slate-900/60 rounded-xl transition duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 flex items-center justify-center p-2;
   }
   
   .btn-destructive {
-    @apply bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl transition-all font-bold flex items-center justify-center;
+    @apply bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl transition duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 font-bold flex items-center justify-center;
   }
   
   /* Inputs */
   .input-base {
-    @apply w-full px-4 py-3 bg-slate-950 border border-slate-900 focus:border-[#3A86FF] focus:outline-none rounded-xl text-slate-200 transition-colors text-sm;
+    @apply w-full px-4 py-3 bg-slate-950 border border-slate-900 focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] rounded-xl text-slate-200 transition duration-200 text-sm;
   }
 }
 

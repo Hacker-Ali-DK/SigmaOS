@@ -26,7 +26,7 @@ export default function NavigationBar() {
               <button
                 key={item.id}
                 onClick={() => setShowAddModal(true)}
-                className="relative -translate-y-4 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-b from-[#1C2541] to-[#0B0F19] shadow-[0_0_15px_rgba(58,134,255,0.15)] active:scale-90 transition-all cursor-pointer border border-[#3A86FF]/30 hover:border-[#3A86FF]/60 hover:shadow-[0_0_20px_rgba(58,134,255,0.3)] hover:scale-105 group p-[2px]"
+                className="relative -translate-y-4 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-b from-[#1C2541] to-[#0B0F19] shadow-[0_0_15px_rgba(58,134,255,0.15)] active:scale-95 transition-all duration-200 cursor-pointer border border-[#3A86FF]/30 hover:border-[#3A86FF]/60 hover:shadow-[0_0_20px_rgba(58,134,255,0.3)] hover:scale-105 group p-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] focus-visible:ring-offset-4 focus-visible:ring-offset-[#0B0F19]"
                 aria-label="Quick Log"
               >
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-[#0B0F19] flex items-center justify-center shadow-inner">
@@ -47,8 +47,8 @@ export default function NavigationBar() {
           return (
             <button
               key={item.id}
-              onClick={() => setTab(item.id)}
-              className="flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-colors"
+              onClick={() => setTab(item.id as any)}
+              className="flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] rounded-xl"
             >
               {Icon && (
                 <Icon

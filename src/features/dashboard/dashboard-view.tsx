@@ -310,7 +310,7 @@ export default function DashboardView({
           <div className="flex flex-col gap-4 flex-1 pl-4 border-l border-slate-800/40">
             <button 
               onClick={onNavigateToHabits}
-              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
+              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] rounded-lg"
             >
               <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/15 flex items-center justify-center text-orange-400">
                 <Flame className="w-5 h-5 fill-orange-500/10" />
@@ -323,7 +323,7 @@ export default function DashboardView({
 
             <button 
               onClick={onNavigateToDopamine}
-              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity"
+              className="flex items-center gap-3 text-left cursor-pointer hover:opacity-85 transition-opacity active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF] rounded-lg mt-1"
             >
               <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-[#02C39A]">
                 <Shield className="w-5 h-5 fill-emerald-500/10" />
@@ -349,8 +349,10 @@ export default function DashboardView({
               <div 
                 key={sub.key}
                 onClick={() => setExpandedScore(isExpanded ? null : sub.key)}
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedScore(isExpanded ? null : sub.key); }}
                 className={cn(
-                  "rounded-2xl p-4 transition-all duration-300 cursor-pointer",
+                  "rounded-2xl p-4 transition-colors duration-300 cursor-pointer active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                   isExpanded ? "border border-slate-800 bg-slate-900/10" : "card-primary hover:border-slate-800/80"
                 )}
               >
@@ -495,12 +497,12 @@ export default function DashboardView({
                 }
 
                 return (
-                  <div 
+                  <button 
                     key={item.key} 
                     onClick={() => handleCyclePrayerStatus(item.key, item.userStatus)}
                     title="Click to cycle status: On Time -> Late -> Missed -> Untracked"
                     className={cn(
-                      "flex flex-col items-center p-2.5 rounded-2xl border transition-all text-center relative cursor-pointer hover:border-slate-700 active:scale-95",
+                      "flex flex-col items-center p-2.5 rounded-2xl border transition-colors text-center relative cursor-pointer hover:border-slate-700 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                       item.isCurrentWindow 
                         ? "bg-cyan-950/30 border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20" 
                         : item.derivedState === 'prayed_on_time'
@@ -522,7 +524,7 @@ export default function DashboardView({
                     {item.completedTime && (
                       <span className="text-micro text-slate-400 font-mono mt-0.5 leading-none">✓ {item.completedTime}</span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -559,8 +561,18 @@ export default function DashboardView({
                     else if (task.taskName === 'Workout') onNavigateToHabits();
                     else handleToggleRoutine(task);
                   }}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (task.taskName === 'Sleep') onNavigateToSleep();
+                      else if (task.taskName === 'Meals' || task.taskName === 'Lunch' || task.taskName === 'Breakfast' || task.taskName === 'Dinner') onNavigateToNutrition();
+                      else if (task.taskName === 'Water') onNavigateToHabits();
+                      else if (task.taskName === 'Workout') onNavigateToHabits();
+                      else handleToggleRoutine(task);
+                    }
+                  }}
                   className={cn(
-                    "relative flex flex-col justify-between rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] group cursor-pointer overflow-hidden min-h-[96px]",
+                    "relative flex flex-col justify-between rounded-2xl border text-left transition-colors duration-200 active:scale-[0.98] group cursor-pointer overflow-hidden min-h-[96px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                     isCompleted
                       ? "bg-[#0B0F19]/45 border-[#3A86FF]/20 p-3"
                       : "card-tertiary hover:border-slate-800"
@@ -611,7 +623,9 @@ export default function DashboardView({
         {/* Today's Goals Card Preview */}
         <div 
           onClick={onNavigateToGoals}
-          className="card-secondary flex items-center justify-between hover:border-slate-800 transition-colors cursor-pointer"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onNavigateToGoals(); }}
+          className="card-secondary flex items-center justify-between hover:border-slate-800 transition-colors cursor-pointer active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]"
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-[#3A86FF]">

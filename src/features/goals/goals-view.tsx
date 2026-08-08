@@ -197,10 +197,10 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                         disabled={g.currentValue <= 0}
                         aria-label={`Decrease ${g.title} goal value`}
                         className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer select-none",
+                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                           g.currentValue <= 0
-                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40"
-                            : "bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 hover:border-slate-700 active:scale-95"
+                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40 active:scale-100"
+                            : "bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 hover:border-slate-700 active:scale-[0.95]"
                         )}
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -219,10 +219,10 @@ export default function GoalsView({ onBack }: GoalsViewProps) {
                         disabled={g.currentValue >= g.targetValue}
                         aria-label={`Increase ${g.title} goal value`}
                         className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer select-none",
+                          "w-8 h-8 rounded-lg flex items-center justify-center border transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3A86FF]",
                           g.currentValue >= g.targetValue
-                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40"
-                            : "bg-[#3A86FF]/10 border-[#3A86FF]/30 text-[#3A86FF] hover:bg-[#3A86FF]/20 hover:border-[#3A86FF]/50 active:scale-95"
+                            ? "bg-slate-950 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-40 active:scale-100"
+                            : "bg-[#3A86FF]/10 border-[#3A86FF]/30 text-[#3A86FF] hover:bg-[#3A86FF]/20 hover:border-[#3A86FF]/50 active:scale-[0.95]"
                         )}
                       >
                         <Plus className="w-3.5 h-3.5" />
