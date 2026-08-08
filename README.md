@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recovery+
 
-## Getting Started
+Recovery+ is a progressive, offline-first personal wellness, habit-tracking, and spiritual alignment application. Designed as a daily companion, Recovery+ empowers users to build consistency, overcome addictions, track physical health and sleep architecture, log detailed prayers with solar calculations, analyze Deen trends, and gain structured insights through an offline AI coach.
 
-First, run the development server:
+## Tech Stack
+* **Framework:** Next.js 16.2.10 (React 19)
+* **Styling:** Tailwind CSS 4.0
+* **State Management:** Zustand
+* **Database:** Dexie.js (IndexedDB)
+* **Icons:** Lucide React
+* **Components:** Radix UI Primitives, Framer Motion
+* **Forms & Validation:** React Hook Form, Zod
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Setup and Installation
+
+1. **Clone the repository**
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+4. **Open application:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Development Commands
+
+* `npm run dev`: Starts the Next.js development server with Turbopack.
+* `npm run build`: Builds the production bundle.
+* `npm run start`: Starts the production server.
+* `npm run lint`: Runs ESLint for code quality checks.
+
+## Project Structure
+
+```
+├── public/                 # Static assets and manifest.json for PWA
+├── src/
+│   ├── app/                # Next.js App Router (page.tsx, layout.tsx, globals.css)
+│   ├── components/         # Reusable UI components (navigation-bar, splash-screen)
+│   ├── features/           # Feature-specific views
+│   │   ├── analytics/      # Overall analytics
+│   │   ├── dashboard/      # Dashboard and prayer timeline
+│   │   ├── dopamine/       # Relapse and urge tracking
+│   │   ├── goals/          # Goal tracking and completion
+│   │   ├── habits/         # Habit grid (water, workout, reading)
+│   │   ├── health/         # Nutrition logging and Sleep architecture
+│   │   ├── profile/        # User profile, journal, backup/restore
+│   │   └── schedule/       # Routine and task scheduling
+│   └── lib/                # Core business logic and services
+│       ├── ai/             # Prediction, correlation, and context building engines
+│       ├── deen/           # Solar calculation and Deen tracking
+│       ├── events/         # Application event bus
+│       ├── notifications/  # Notification logic and adaptive intelligence
+│       ├── planning/       # Trigger coordination
+│       ├── scoring/        # Health and recovery scoring engines
+│       └── db.ts           # Dexie IndexedDB schema and configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Documentation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Comprehensive documentation can be found in the project root:
+- `ARCHITECTURE.md` - Overall architecture and offline-first design
+- `DATABASE_SCHEMA.md` - Dexie/IndexedDB schema and relationships
+- `DATA_FLOW.md` - Application data and event flow
+- `FEATURE_SPEC.md` - Detailed feature breakdown
+- `BUSINESS_LOGIC.md` - Scoring rules and formulas
+- `UI_DESIGN_SYSTEM.md` - Styling and UX guidelines
+- `AI_SPEC.md` - AI and prediction engine architecture
+- `EVENT_SYSTEM.md` - Event bus implementation
+- `TEST_PLAN.md` - Testing strategies
+- `CHANGELOG.md` - Project history
+- `SECURITY.md` - Security considerations
+- `ROADMAP.md` - Current, planned, and unimplemented features

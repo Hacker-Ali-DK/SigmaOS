@@ -9,7 +9,7 @@ class AdaptiveIntelligenceEngine {
     const predictions = await generatePredictions(targetDate);
 
     // 1. Relapse Risk High -> Upgrade recovery grounding reminders to P0 Critical
-    if (predictions.relapseRisk >= 40 && candidate.category === 'recovery') {
+    if (predictions.relapseRisk !== null && predictions.relapseRisk >= 40 && candidate.category === 'recovery') {
       return {
         ...candidate,
         priority: 'P0',
@@ -19,7 +19,7 @@ class AdaptiveIntelligenceEngine {
     }
 
     // 2. Sleep Quality Low -> Shift workout reminder copy to low-intensity recovery walk
-    if (predictions.sleepQualityPred <= 2 && candidate.category === 'workout') {
+    if (predictions.sleepQualityPred !== null && predictions.sleepQualityPred <= 2 && candidate.category === 'workout') {
       return {
         ...candidate,
         title: `Light Recovery Walk Suggested`,

@@ -42,14 +42,13 @@ export interface AILearningRecord {
 }
 
 export interface PredictionVector {
-  recoveryScorePred: number;
-  energyCurve: Array<{ hour: number; level: number }>; // 0-23 hours, 0-100 energy level
-  relapseRisk: number; // 0-100 scale
-  burnoutIndex: number; // 0-100 scale
-  sleepQualityPred: number; // 1-5 rating scale
-  prayerConsistencyPred: Record<string, number>; // fajr, dhuhr, asr, maghrib, isha on-time prob %
-  goalCompletionPred: Array<{ goalId: number; title: string; predictedCompletionDate: string; onTrack: boolean }>;
-  confidenceScores: Record<string, number>; // Domain -> confidence score %
+  recoveryScorePred: number | null;
+  energyCurve: Array<{ hour: number; level: number }> | null; // 0-23 hours, 0-100 energy level
+  relapseRisk: number | null; // 0-100 scale
+  burnoutIndex: number | null; // 0-100 scale
+  sleepQualityPred: number | null; // 1-5 rating scale
+  prayerConsistencyPred: Record<string, number> | null; // fajr, dhuhr, asr, maghrib, isha on-time prob %
+  goalCompletionPred: Array<{ goalId: number; title: string; predictedCompletionDate: string; onTrack: boolean }> | null;
   timestamp: number;
 }
 

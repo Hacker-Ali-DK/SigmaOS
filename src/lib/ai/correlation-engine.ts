@@ -69,46 +69,5 @@ export async function runCorrelationDiscovery(): Promise<AICorrelationRecord[]> 
     }
   }
 
-  // Fallback default verified correlations if sample size is building
-  if (correlations.length === 0) {
-    const verifiedDefaults: AICorrelationRecord[] = [
-      {
-        pairKey: 'sleep_energy',
-        moduleA: 'Sleep Duration',
-        moduleB: 'Daily Energy',
-        correlation: 0.72,
-        pValue: 0.01,
-        relationship: 'strong_positive',
-        sampleSize: 14,
-        updatedAt: Date.now()
-      },
-      {
-        pairKey: 'fajr_discipline',
-        moduleA: 'Fajr On-Time Prayer',
-        moduleB: 'Daily Discipline Score',
-        correlation: 0.65,
-        pValue: 0.02,
-        relationship: 'strong_positive',
-        sampleSize: 14,
-        updatedAt: Date.now()
-      },
-      {
-        pairKey: 'late_screen_urge',
-        moduleA: 'Late Screen Time',
-        moduleB: 'Dopamine Urge Vulnerability',
-        correlation: -0.58,
-        pValue: 0.03,
-        relationship: 'moderate_negative',
-        sampleSize: 14,
-        updatedAt: Date.now()
-      }
-    ];
-
-    for (const d of verifiedDefaults) {
-      correlations.push(d);
-      await db.aiCorrelations.put(d);
-    }
-  }
-
   return correlations;
 }
