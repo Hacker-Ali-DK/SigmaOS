@@ -50,12 +50,14 @@ export default function NavigationBar() {
               onClick={() => setTab(item.id)}
               className="flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-colors"
             >
-              <Icon
-                className={cn(
-                  "w-5 h-5 transition-transform duration-200",
-                  isActive ? "text-[#3A86FF] scale-110" : "text-slate-500 hover:text-slate-300"
-                )}
-              />
+              {Icon && (
+                <Icon
+                  className={cn(
+                    "w-5 h-5 transition-transform duration-200",
+                    isActive ? "text-[#3A86FF] scale-110" : "text-slate-500 hover:text-slate-300"
+                  )}
+                />
+              )}
               <span
                 className={cn(
                   "text-micro mt-1 tracking-wide font-medium transition-colors",
